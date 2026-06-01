@@ -32,8 +32,8 @@ CI runs on every push/PR to `main` — builds, checks formatting, lints, and run
 
 ### Phase 1 — Fix & Complete Core CRUD (High Priority)
 
-- [ ] Fix `JobController` — duplicate `@GetMapping` on `getJobById()` causes ambiguous mapping
-- [ ] Add `@PathVariable` to `getJobById(Long id)` — currently unbound
+- [x] Fix `JobController` — duplicate `@GetMapping` on `getJobById()` causes ambiguous mapping
+- [x] Add `@PathVariable` to `getJobById(Long id)` — currently unbound
 - [ ] Add `PUT /api/jobs/{id}` — update a job
 - [ ] Add `DELETE /api/jobs/{id}` — delete a job
 - [ ] Fix null checks in `create()` — return `400` instead of `null`

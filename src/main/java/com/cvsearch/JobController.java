@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.*;
 
+
 @RestController
 @RequestMapping("/api/jobs")
 public class JobController {
@@ -18,8 +19,8 @@ public class JobController {
 		return repository.findAll();
 	}
 
-	@GetMapping
-	public Optional<Job> getJobById(Long id) {
+	@GetMapping("/{id}")
+	public Optional<Job> getJobById(@PathVariable Long id) {
 		if (id == null) {
 			return Optional.empty();
 		}
@@ -28,9 +29,18 @@ public class JobController {
 
 	@PostMapping
 	public Job create(@RequestBody Job job) {
-		if (job == null) {
-			return null;
-		}
 		return repository.save(job);
+	}
+
+	@PutMapping("/{id}")
+	public Job updateJobById(@PathVariable Long id, @RequestBody Job updatedJob) {
+		return repository.findById(id).map(job -> {
+			job.setTitle(updatedJob.getTitle());
+			job.setCompany(updatedJob.getCompany());
+			job.setDescription(updatedJob.getDescription());
+			job.setStatus(updatedJob.getStatus());
+			job.setAppliedDate(updatedJob.getAppliedDate());
+			return repository.save(job);
+		}).orElseThrow(() -> new RuntimeException("Job not found with id: " + id));
 	}
 }

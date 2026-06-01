@@ -11,3 +11,18 @@ Content-Type: application/json
   "status": "Applied",
   "appliedDate": "2026-05-29"
 }
+
+############################################
+GET http://localhost:8080/api/jobs/1
+
+{
+  "id": 1
+}
+
+############################################
+PUT http://localhost:8080/api/jobs/2
+Content-Type: application/json
+
+{
+    "title": "poopy"
+}
