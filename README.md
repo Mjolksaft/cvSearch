@@ -30,15 +30,6 @@ CI runs on every push/PR to `main` — builds, checks formatting, lints, and run
 
 ## Todo List
 
-### Phase 1 — Fix & Complete Core CRUD (High Priority)
-
-- [x] Fix `JobController` — duplicate `@GetMapping` on `getJobById()` causes ambiguous mapping
-- [x] Add `@PathVariable` to `getJobById(Long id)` — currently unbound
-- [ ] Add `PUT /api/jobs/{id}` — update a job
-- [ ] Add `DELETE /api/jobs/{id}` — delete a job
-- [ ] Fix null checks in `create()` — return `400` instead of `null`
-- [ ] Add `PATCH /api/jobs/{id}` — partial update (optional)
-
 ### Phase 2 — Service Layer & Validation (High Priority)
 
 - [ ] Create `JobService` `@Service` class — move business logic out of controller

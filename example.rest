@@ -20,9 +20,23 @@ GET http://localhost:8080/api/jobs/1
 }
 
 ############################################
-PUT http://localhost:8080/api/jobs/2
+PUT http://localhost:8080/api/jobs/1
 Content-Type: application/json
 
 {
-    "title": "poopy"
+    "title": "poopy",
+    "company": "hello",
+    "description": "hello",
+    "status": "hello"
+}
+
+#############################################
+DELETE http://localhost:8080/api/jobs/1
+
+########################################
+PATCH  http://localhost:8080/api/jobs/1
+Content-Type: application/json
+
+{
+  "title": "hello world"
 }
