@@ -2,58 +2,62 @@
 
 Spring Boot 3.4.4 REST API for tracking job applications. PostgreSQL 17.
 
-## Current State
+---
 
-Single entity (`Job`) with a buggy controller that has duplicate `@GetMapping`, no `PUT`/`DELETE`, no service layer, no validation, and no error handling.
+## Roadmap
+
+### Step 1 — Service Layer & Validation
+
+**What:** Move business logic out of the controller into a `@Service` class. Add validation so bad data is rejected before it hits the DB.
+
+**Concepts to learn:**
+- `@Service` / dependency injection
+- `@Valid` + `jakarta.validation` annotations (`@NotBlank`, `@NotNull`)
+- Spring Boot validation starter
+- `@ControllerAdvice` for global exception handling
+
+---
+
+### Step 2 — DTOs & Search
+
+**What:** Stop exposing your `Job` entity directly in API responses. Create dedicated request/response classes so the API is decoupled from the DB schema. Add search/filter endpoints.
+
+**Concepts to learn:**
+- DTO pattern (Data Transfer Object)
+- Manual mapping vs MapStruct
+- Spring Data JPA custom query methods
+- Query parameters with `@RequestParam`
+
+---
+
+### Step 3 — Docker & Testing
+
+**What:** Containerize the app properly. Add automated tests.
+
+**Concepts to learn:**
+- Multi-stage Docker builds
+- Testcontainers (PostgreSQL in tests)
+- `@WebMvcTest`, `@DataJpaTest`
+- Mockito for service tests
+
+---
+
+### Step 4 — More Entities & Auth
+
+**What:** Add `User`, `Company`, `Resume`, `Interview` entities with full CRUD. Secure the API.
+
+**Concepts to learn:**
+- JPA entity relationships (`@OneToMany`, `@ManyToOne`)
+- Spring Security + JWT
+- Role-based access
+- Pagination & sorting with Spring Data
+- OpenAPI / Swagger docs (`springdoc-openapi`)
 
 ---
 
 ## Development
 
 ```bash
-# Format code (auto-fix)
-mvn spotless:apply
-
-# Check formatting only
-mvn spotless:check
-
-# Lint (Checkstyle)
-mvn checkstyle:check
-
 # Build & test
 mvn clean verify
 ```
-
-CI runs on every push/PR to `main` — builds, checks formatting, lints, and runs tests.
-
----
-
-## Todo List
-
-### Phase 2 — Service Layer & Validation (High Priority)
-
-- [ ] Create `JobService` `@Service` class — move business logic out of controller
-- [ ] Add `jakarta.validation` constraints to `Job` entity (`@NotBlank`, `@NotNull`, etc.)
-- [ ] Add `@Valid` on `@RequestBody` in controller methods
-- [ ] Add global exception handler (`@ControllerAdvice`) — structured error responses
-
-### Phase 3 — DTOs & Search (Medium Priority)
-
-- [ ] Create `JobRequest` / `JobResponse` DTOs — decouple API from entity
-- [ ] Add custom query methods to `JobRepository` — `findByTitle`, `findByCompany`, `findByStatus`, `findByAppliedDateBetween`
-- [ ] Add search/filter endpoint `GET /api/jobs/search?title=&company=&status=`
-
-### Phase 4 — Infra & Quality (Medium Priority)
-
-- [ ] Add `spring-boot-starter-validation` dependency (if missing)
-- [ ] Fix `Dockerfile` — multi-stage build with Maven wrapper
-- [ ] Add `src/test/java` — unit tests for service + controller
-- [ ] Add testcontainers for integration tests with real PostgreSQL
-
-### Phase 5 — Enhancements (Low Priority)
-
-- [ ] Add more entities (`User`, `Company`, `Resume`, `Interview`) with full CRUD
-- [ ] Add pagination & sorting to `GET /api/jobs`
-- [ ] Add Spring Security / JWT auth
-- [ ] Add Swagger/OpenAPI docs (`springdoc-openapi`)
-- [ ] Add frontend (React / Vue)
