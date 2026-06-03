@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(jobNotFoundException.class)
-    public Map<String, String> handleJobNotFound(jobNotFoundException ex) {
+    @ExceptionHandler(JobNotFoundException.class)
+    public Map<String, String> handleJobNotFound(JobNotFoundException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return error;

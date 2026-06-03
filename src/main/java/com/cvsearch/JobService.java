@@ -5,52 +5,68 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+
+import com.cvsearch.DTO.JobRequest;
+import com.cvsearch.DTO.JobResponse;
+
 import jakarta.validation.constraints.NotNull;
 
 @Service
 @Validated
 public class JobService {
-    @NotNull
-    private final JobRepository repository;
+	@NotNull
+	private final JobRepository repository;
 
-    public JobService(JobRepository repository) {
-        this.repository = repository;
-    }
-    
-    public List<Job> GetAllJobs() { // correct
-        return repository.findAll();
-    }
+	public JobService(JobRepository repository) {
+		this.repository = repository;
+	}
+
+	public List<Job> GetAllJobs() { // correct
+		return repository.findAll();
+	}
 
 	public Optional<Job> getJobById(@NotNull Long id) { // correct
 		return repository.findById(id);
 	}
 
-	public Job create(@NotNull Job job) {
-		return repository.save(job);
+	public JobResponse create(JobRequest request) {
+		Job job = new Job(request.title(), request.company(), request.description(), request.status(),
+				request.appliedDate());
+		Job newJob = repository.save(job);
+		return new JobResponse(newJob.getTitle(), newJob.getCompany(), newJob.getDescription(), newJob.getStatus());
 	}
 
-	public Job updateJobById(@NotNull Long id, @NotNull Job updatedJob) {
-		return repository.findById(id).map(job -> {
-			job.setTitle(updatedJob.getTitle());
-			job.setCompany(updatedJob.getCompany());
-			job.setDescription(updatedJob.getDescription());
-			job.setStatus(updatedJob.getStatus());
-			return repository.save(job);
-		}).orElseThrow(() -> new jobNotFoundException(id));
+	public JobResponse updateJobById(@NotNull Long id, @NotNull JobRequest request) {
+		return repository.findById(id)
+			.map(job -> {
+				job.setTitle(request.title());
+				job.setCompany(request.company());
+				job.setDescription(request.description());
+				job.setStatus(request.status());
+				job.setAppliedDate(request.appliedDate());
+
+				Job updatedJob = repository.save(job);
+
+				return new JobResponse(updatedJob.getTitle(), updatedJob.getCompany(), updatedJob.getDescription(), updatedJob.getStatus());
+			})
+			.orElseThrow(() -> new JobNotFoundException(id));
 	}
 
-	public Job partialUpdateJobById(@NotNull Long id, @NotNull Job updatedJob) {
+	public JobResponse partialUpdateJobById(@NotNull Long id, @NotNull JobRequest request) {
 		return repository.findById(id).map(job -> {
-
-			if (updatedJob.getTitle() != null) job.setTitle(updatedJob.getTitle());
-			if (updatedJob.getCompany() != null) job.setCompany(updatedJob.getCompany());
-			if (updatedJob.getDescription() != null) job.setDescription(updatedJob.getDescription());
-			if (updatedJob.getStatus() != null) job.setStatus(updatedJob.getStatus());
-			if (updatedJob.getAppliedDate() != null) job.setAppliedDate(updatedJob.getAppliedDate());
-			
-
-			return repository.save(job);
-		}).orElseThrow(() -> new jobNotFoundException(id));
+			if (request.title() != null)
+				job.setTitle(request.title());
+			if (request.company() != null)
+				job.setCompany(request.company());
+			if (request.description() != null)
+				job.setDescription(request.description());
+			if (request.status() != null)
+				job.setStatus(request.status());
+			if (request.appliedDate() != null)
+				job.setAppliedDate(request.appliedDate());
+			Job updatedJob = repository.save(job);
+			return new JobResponse(updatedJob.getTitle(), updatedJob.getCompany(), updatedJob.getDescription(), updatedJob.getStatus());
+		}).orElseThrow(() -> new JobNotFoundException(id));
 	}
 
 	public void deleteJobById(@NotNull Long id) {

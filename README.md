@@ -23,7 +23,6 @@ Spring Boot 3.4.4 REST API for tracking job applications. PostgreSQL 17.
 **What:** Stop exposing your `Job` entity directly in API responses. Create dedicated request/response classes so the API is decoupled from the DB schema. Add search/filter endpoints.
 
 **Concepts to learn:**
-- DTO pattern (Data Transfer Object)
 - Manual mapping vs MapStruct
 - Spring Data JPA custom query methods
 - Query parameters with `@RequestParam`

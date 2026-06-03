@@ -6,6 +6,9 @@ import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.cvsearch.DTO.JobRequest;
+import com.cvsearch.DTO.JobResponse;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -29,8 +32,8 @@ public class JobController {
 	}
 
 	@PostMapping
-	public ResponseEntity<Job> create(@RequestBody Job job) {
-		Job createdJob = service.create(job);
+	public ResponseEntity<JobResponse> create(@RequestBody JobRequest job) {
+		JobResponse createdJob = service.create(job);
 		return ResponseEntity.ok(createdJob);
 	}
 
@@ -41,12 +44,14 @@ public class JobController {
 	}
 
 	@PutMapping("/{id}")
-	public Job updateJobById(@PathVariable Long id, @Valid @RequestBody Job updatedJob) {
-		return service.updateJobById(id, updatedJob);
+	public ResponseEntity<JobResponse> updateJobById(@PathVariable Long id, @Valid @RequestBody JobRequest request) {
+		JobResponse updatedJob = service.updateJobById(id, request);
+		return ResponseEntity.ok(updatedJob);
 	}
 
 	@PatchMapping("/{id}")
-	public Job partialUpdateJobById(@PathVariable Long id, @Valid @RequestBody Job updatedJob) {
-		return service.partialUpdateJobById(id, updatedJob);
+	public ResponseEntity<JobResponse> partialUpdateJobById(@PathVariable Long id, @Valid @RequestBody JobRequest request) {
+		JobResponse updatedJob = service.partialUpdateJobById(id, request);
+		return ResponseEntity.ok(updatedJob);
 	}
 }
