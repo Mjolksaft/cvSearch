@@ -1,11 +1,11 @@
 package com.cvsearch;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import com.cvsearch.DTO.JobPatchRequest;
 import com.cvsearch.DTO.JobRequest;
 import com.cvsearch.DTO.JobResponse;
 
@@ -14,58 +14,50 @@ import jakarta.validation.constraints.NotNull;
 @Service
 @Validated
 public class JobService {
-	@NotNull
 	private final JobRepository repository;
+	private final JobMapper jobMapper;
 
-	public JobService(JobRepository repository) {
+	public JobService(JobRepository repository, JobMapper jobMapper) {
 		this.repository = repository;
+		this.jobMapper = jobMapper;
 	}
 
-	public List<Job> GetAllJobs() { // correct
-		return repository.findAll();
+	public List<JobResponse> GetAllJobs() {
+		List<Job> jobs = repository.findAll();
+		return jobMapper.toResponseList(jobs);
 	}
 
-	public Optional<Job> getJobById(@NotNull Long id) { // correct
-		return repository.findById(id);
+	public JobResponse getJobById(Long id) {
+		Job job = repository.findById(id).
+			orElseThrow(() -> new JobNotFoundException(id));
+
+		return jobMapper.toResponse(job);
 	}
 
 	public JobResponse create(JobRequest request) {
-		Job job = new Job(request.title(), request.company(), request.description(), request.status(),
-				request.appliedDate());
+		Job job = jobMapper.toEntity(request);
+
 		Job newJob = repository.save(job);
-		return new JobResponse(newJob.getTitle(), newJob.getCompany(), newJob.getDescription(), newJob.getStatus());
+		return jobMapper.toResponse(newJob);
 	}
 
 	public JobResponse updateJobById(@NotNull Long id, @NotNull JobRequest request) {
+		
 		return repository.findById(id)
 			.map(job -> {
-				job.setTitle(request.title());
-				job.setCompany(request.company());
-				job.setDescription(request.description());
-				job.setStatus(request.status());
-				job.setAppliedDate(request.appliedDate());
+				Job newJob = jobMapper.toEntity(request);
+				newJob = repository.save(newJob);
 
-				Job updatedJob = repository.save(job);
-
-				return new JobResponse(updatedJob.getTitle(), updatedJob.getCompany(), updatedJob.getDescription(), updatedJob.getStatus());
+				return jobMapper.toResponse(newJob);
 			})
 			.orElseThrow(() -> new JobNotFoundException(id));
 	}
 
-	public JobResponse partialUpdateJobById(@NotNull Long id, @NotNull JobRequest request) {
+	public JobResponse partialUpdateJobById(@NotNull Long id, @NotNull JobPatchRequest request) {
 		return repository.findById(id).map(job -> {
-			if (request.title() != null)
-				job.setTitle(request.title());
-			if (request.company() != null)
-				job.setCompany(request.company());
-			if (request.description() != null)
-				job.setDescription(request.description());
-			if (request.status() != null)
-				job.setStatus(request.status());
-			if (request.appliedDate() != null)
-				job.setAppliedDate(request.appliedDate());
+			jobMapper.applyPartialUpdate(request, job);
 			Job updatedJob = repository.save(job);
-			return new JobResponse(updatedJob.getTitle(), updatedJob.getCompany(), updatedJob.getDescription(), updatedJob.getStatus());
+			return jobMapper.toResponse(updatedJob);
 		}).orElseThrow(() -> new JobNotFoundException(id));
 	}
 

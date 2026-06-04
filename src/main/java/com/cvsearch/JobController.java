@@ -1,11 +1,11 @@
 package com.cvsearch;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.cvsearch.DTO.JobPatchRequest;
 import com.cvsearch.DTO.JobRequest;
 import com.cvsearch.DTO.JobResponse;
 
@@ -21,12 +21,12 @@ public class JobController {
 	}
 
 	@GetMapping
-	public List<Job> getAll() {
+	public List<JobResponse> getAll() {
 		return service.GetAllJobs();
 	}
 
 	@GetMapping("/{id}")
-	public Optional<Job> getJobById(@PathVariable Long id) {
+	public JobResponse getJobById(@PathVariable Long id) {
 
 		return service.getJobById(id);
 	}
@@ -50,7 +50,7 @@ public class JobController {
 	}
 
 	@PatchMapping("/{id}")
-	public ResponseEntity<JobResponse> partialUpdateJobById(@PathVariable Long id, @Valid @RequestBody JobRequest request) {
+	public ResponseEntity<JobResponse> partialUpdateJobById(@PathVariable Long id, @Valid @RequestBody JobPatchRequest request) {
 		JobResponse updatedJob = service.partialUpdateJobById(id, request);
 		return ResponseEntity.ok(updatedJob);
 	}

@@ -27,7 +27,8 @@ Content-Type: application/json
     "title": "poopy",
     "company": "hello",
     "description": "hello",
-    "status": "hello"
+    "status": "hello",
+    "appliedDate": "2026-05-29"
 }
 
 #############################################
