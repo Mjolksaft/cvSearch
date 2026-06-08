@@ -64,4 +64,9 @@ public class JobService {
 	public void deleteJobById(@NotNull Long id) {
 		repository.deleteById(id);
 	}
+
+	public List<JobResponse> search(String company, String title, String status) {
+		List<Job> jobs = repository.searchJobs(company, title, status);
+		return jobMapper.toResponseList(jobs);
+	}
 }

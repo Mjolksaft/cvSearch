@@ -21,7 +21,14 @@ public class JobController {
 	}
 
 	@GetMapping
-	public List<JobResponse> getAll() {
+	public List<JobResponse> getAll(
+			@RequestParam(required = false) String company,
+			@RequestParam(required = false) String title,
+			@RequestParam(required = false) String status) {
+
+		if (company != null || title != null || status != null) {
+			return service.search(company, title, status);
+		}
 		return service.GetAllJobs();
 	}
 
