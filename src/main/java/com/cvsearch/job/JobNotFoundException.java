@@ -1,4 +1,4 @@
-package com.cvsearch;
+package com.cvsearch.job;
 
 public class JobNotFoundException extends RuntimeException {
     public JobNotFoundException(Long id) {

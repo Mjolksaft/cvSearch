@@ -1,15 +1,14 @@
-package com.cvsearch.DTO;
+package com.cvsearch.job.dto;
 
 import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record JobResponse(
-		@NotNull Long id,
+public record JobRequest(
 		@NotBlank String title,
-		@NotBlank String company,
+		@NotNull Long companyId,
 		@NotBlank String description,
-		@NotNull String status,
+		@NotBlank String status,
 		@NotNull LocalDate appliedDate) {
 }

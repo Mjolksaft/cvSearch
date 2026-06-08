@@ -1,0 +1,46 @@
+GET http://localhost:8080/api/users
+
+############################################
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "David",
+  "email": "Kalla01@hotmail.se",
+  "password": "123",
+  "role": "dogshit"
+}
+
+
+############################################
+GET http://localhost:8080/api/users/1
+
+{
+  "id": 1
+}
+
+############################################
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+    "title": "poopy",
+    "companyId": 1,
+    "description": "hello",
+    "status": "hello",
+    "appliedDate": "2026-05-29"
+}
+
+#############################################
+DELETE http://localhost:8080/api/users/1
+
+########################################
+PATCH  http://localhost:8080/api/users/2
+Content-Type: application/json
+
+{
+  "title": "hello world"
+}
+
+################################################
+GET http://localhost:8080/api/jobs/fetch?q=java&limit=100

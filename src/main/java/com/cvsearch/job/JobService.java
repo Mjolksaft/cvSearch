@@ -1,13 +1,15 @@
-package com.cvsearch;
+package com.cvsearch.job;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import com.cvsearch.DTO.JobPatchRequest;
-import com.cvsearch.DTO.JobRequest;
-import com.cvsearch.DTO.JobResponse;
+import com.cvsearch.company.Company;
+import com.cvsearch.company.CompanyRepository;
+import com.cvsearch.job.dto.JobPatchRequest;
+import com.cvsearch.job.dto.JobRequest;
+import com.cvsearch.job.dto.JobResponse;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -16,10 +18,12 @@ import jakarta.validation.constraints.NotNull;
 public class JobService {
 	private final JobRepository repository;
 	private final JobMapper jobMapper;
+	private final CompanyRepository companyRepository;
 
-	public JobService(JobRepository repository, JobMapper jobMapper) {
+	public JobService(JobRepository repository, JobMapper jobMapper, CompanyRepository companyRepository) {
 		this.repository = repository;
 		this.jobMapper = jobMapper;
+		this.companyRepository = companyRepository;
 	}
 
 	public List<JobResponse> GetAllJobs() {
@@ -36,6 +40,9 @@ public class JobService {
 
 	public JobResponse create(JobRequest request) {
 		Job job = jobMapper.toEntity(request);
+		Company company = companyRepository.findById(request.companyId())
+				.orElseThrow(() -> new RuntimeException("Company not found with id: " + request.companyId()));
+		job.setCompany(company);
 
 		Job newJob = repository.save(job);
 		return jobMapper.toResponse(newJob);
@@ -46,6 +53,9 @@ public class JobService {
 		return repository.findById(id)
 			.map(job -> {
 				Job newJob = jobMapper.toEntity(request);
+				Company company = companyRepository.findById(request.companyId())
+						.orElseThrow(() -> new RuntimeException("Company not found with id: " + request.companyId()));
+				newJob.setCompany(company);
 				newJob = repository.save(newJob);
 
 				return jobMapper.toResponse(newJob);
@@ -56,6 +66,11 @@ public class JobService {
 	public JobResponse partialUpdateJobById(@NotNull Long id, @NotNull JobPatchRequest request) {
 		return repository.findById(id).map(job -> {
 			jobMapper.applyPartialUpdate(request, job);
+			if (request.companyId() != null) {
+				Company company = companyRepository.findById(request.companyId())
+						.orElseThrow(() -> new RuntimeException("Company not found with id: " + request.companyId()));
+				job.setCompany(company);
+			}
 			Job updatedJob = repository.save(job);
 			return jobMapper.toResponse(updatedJob);
 		}).orElseThrow(() -> new JobNotFoundException(id));

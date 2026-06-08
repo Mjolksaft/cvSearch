@@ -1,0 +1,44 @@
+GET http://localhost:8080/api/jobs
+
+############################################
+POST http://localhost:8080/api/jobs
+Content-Type: application/json
+
+{
+  "title": "Software Engineer",
+  "companyId": 2,
+  "description": "Java backend role",
+  "status": "Applied",
+  "appliedDate": "2026-05-29"
+}
+
+
+############################################
+GET http://localhost:8080/api/jobs/1
+
+{
+  "id": 1
+}
+
+############################################
+PUT http://localhost:8080/api/jobs/1
+Content-Type: application/json
+
+{
+    "title": "poopy",
+    "companyId": 1,
+    "description": "hello",
+    "status": "hello",
+    "appliedDate": "2026-05-29"
+}
+
+#############################################
+DELETE http://localhost:8080/api/jobs/1
+
+########################################
+PATCH  http://localhost:8080/api/jobs/2
+Content-Type: application/json
+
+{
+  "title": "hello world"
+}

@@ -1,23 +1,28 @@
-package com.cvsearch;
+package com.cvsearch.job;
 
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.cvsearch.DTO.JobPatchRequest;
-import com.cvsearch.DTO.JobRequest;
-import com.cvsearch.DTO.JobResponse;
+import com.cvsearch.job.dto.JobAd;
+import com.cvsearch.job.dto.JobPatchRequest;
+import com.cvsearch.job.dto.JobRequest;
+import com.cvsearch.job.dto.JobResponse;
+import com.cvsearch.job.dto.SearchResponse;
 
 import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/api/jobs")
 public class JobController {
 	private JobService service;
+	private JobFetcherService fetcherService;
 
-	public JobController(JobService service) {
+	public JobController(JobService service, JobFetcherService fetcherService) {
 		this.service = service;
+		this.fetcherService = fetcherService;
 	}
 
 	@GetMapping
@@ -61,4 +66,10 @@ public class JobController {
 		JobResponse updatedJob = service.partialUpdateJobById(id, request);
 		return ResponseEntity.ok(updatedJob);
 	}
+
+	@GetMapping("/fetch")
+	public ResponseEntity<SearchResponse> fetchJobs(@RequestParam(defaultValue = "java") String q) {
+		SearchResponse response = fetcherService.searchJobs(q);
+		return ResponseEntity.ok(response);
+	};
 }

@@ -9,9 +9,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import com.cvsearch.JobService;
-import com.cvsearch.DTO.JobRequest;
-import com.cvsearch.DTO.JobResponse;
+import com.cvsearch.company.Company;
+import com.cvsearch.job.dto.JobRequest;
+import com.cvsearch.job.dto.JobResponse;
+import com.cvsearch.company.CompanyRepository;
+import com.cvsearch.job.JobService;
 
 import java.time.LocalDate;
 
@@ -23,6 +25,9 @@ class JobServiceTest {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private CompanyRepository companyRepository;
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17");
@@ -40,9 +45,10 @@ class JobServiceTest {
 
     @Test
     void createJob() {
+        Company company = companyRepository.save(new Company("Google", "https://www.google.com/", "Kristianstad", null));
         JobRequest request = new JobRequest(
             "Software Engineer",
-            "Google",
+            company.getId(),
             "Build stuff",
             "Applied",
             LocalDate.of(2026, 6, 1)
@@ -52,6 +58,6 @@ class JobServiceTest {
 
         assertNotNull(response.id());
         assertEquals("Software Engineer", response.title());
-        assertEquals("Google", response.company());
+        assertEquals("Google", response.companyName());
     }
 }

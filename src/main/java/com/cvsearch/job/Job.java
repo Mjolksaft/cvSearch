@@ -1,38 +1,55 @@
-package com.cvsearch;
+package com.cvsearch.job;
 
+import java.time.LocalDate;
+
+import com.cvsearch.company.Company;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
-import java.time.LocalDate;
 
 @Entity
 public class Job {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	@Column(unique = true)
+	private Long externalId;
 	@NotBlank
+	@Column(length = 500)
 	private String title;
+	@NotNull
+	@ManyToOne
+	@JoinColumn(name = "company_id")
+	private Company company;
 	@NotBlank
-	private String company;
-	@NotBlank
+	@Column(columnDefinition = "TEXT")
 	private String description;
 	@NotBlank
 	private String status;
+	@Column(length = 300)
+	private String location;
+	private LocalDate deadline;
 	@NotNull
 	private LocalDate appliedDate;
 
 	public Job() {
 	}
 
-	public Job(String title, String company, String description, String status, LocalDate appliedDate) {
+	public Job(String title, Company company, String description, String status, String location, LocalDate deadline, LocalDate appliedDate) {
 		this.title = title;
 		this.company = company;
 		this.description = description;
 		this.status = status;
+		this.location = location;
+		this.deadline = deadline;
 		this.appliedDate = appliedDate;
 	}
 
@@ -44,6 +61,14 @@ public class Job {
 		this.id = id;
 	}
 
+	public Long getExternalId() {
+		return externalId;
+	}
+
+	public void setExternalId(Long externalId) {
+		this.externalId = externalId;
+	}
+
 	public String getTitle() {
 		return title;
 	}
@@ -52,11 +77,11 @@ public class Job {
 		this.title = title;
 	}
 
-	public String getCompany() {
+	public Company getCompany() {
 		return company;
 	}
 
-	public void setCompany(String company) {
+	public void setCompany(Company company) {
 		this.company = company;
 	}
 
@@ -74,6 +99,22 @@ public class Job {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getLocation() {
+		return this.location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
+	}
+
+	public LocalDate getDeadline() {
+		return this.deadline;
+	}
+	
+	public void setDeadline(LocalDate deadline) {
+		this.deadline = deadline;
 	}
 
 	public LocalDate getAppliedDate() {
