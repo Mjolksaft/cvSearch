@@ -1,0 +1,31 @@
+GET http://localhost:8080/api/users/1
+
+############################################
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "David",
+  "email": "Kalla01@hotmail.se",
+  "password": "123",
+  "role": "dogshit"
+}
+
+############################################
+GET http://localhost:8080/api/users/1
+
+############################################
+PUT http://localhost:8080/api/profile?userId=1
+Content-Type: application/json
+
+{
+  "summary": "Experienced software developer with a passion for Java",
+  "skills": "[\"Java\", \"Spring Boot\", \"SQL\", \"Git\"]",
+  "projects": "[{\"name\": \"CV Search\", \"description\": \"Job search platform with AI-generated CVs\", \"technologies\": [\"Java\", \"Spring Boot\", \"PostgreSQL\"]}]",
+  "education": "[{\"degree\": \"BSc Computer Science\", \"school\": \"University\", \"year\": \"2020\"}]",
+  "languages": "[\"Swedish (native)\", \"English (fluent)\"]",
+  "certifications": "[]"
+}
+
+############################################
+GET http://localhost:8080/api/profile?userId=1

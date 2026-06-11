@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.cvsearch.job.dto.JobAd;
 import com.cvsearch.job.dto.JobPatchRequest;
 import com.cvsearch.job.dto.JobRequest;
 import com.cvsearch.job.dto.JobResponse;

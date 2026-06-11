@@ -1,12 +1,13 @@
 package com.cvsearch.userProfile;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.cvsearch.userProfile.dto.ProfileRequest;
+import com.cvsearch.userProfile.dto.ProfileResponse;
+
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/profile")
 public class UserProfileController {
     private final UserProfileService service;
 
@@ -14,19 +15,17 @@ public class UserProfileController {
         this.service = service;
     }
 
-    @PostMapping
-    public ResponseEntity<UserProfile> create(@RequestBody UserProfile user) {
-        UserProfile created = service.create(user);
-        return ResponseEntity.ok(created);
-    }
-
     @GetMapping
-    public List<UserProfile> getAll() {
-        return service.getAll();
+    public ResponseEntity<ProfileResponse> getProfile(@RequestParam Long userId) {
+        ProfileResponse profile = service.getByUserId(userId);
+        return ResponseEntity.ok(profile);
     }
 
-    @GetMapping("/{id}")
-    public UserProfile getById(@PathVariable Long id) {
-        return service.getById(id);
+    @PutMapping
+    public ResponseEntity<ProfileResponse> createOrReplaceProfile(
+            @RequestParam Long userId,
+            @RequestBody ProfileRequest request) {
+        ProfileResponse profile = service.createOrReplace(userId, request);
+        return ResponseEntity.ok(profile);
     }
 }

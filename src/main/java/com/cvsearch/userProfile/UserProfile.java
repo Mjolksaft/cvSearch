@@ -1,6 +1,7 @@
 package com.cvsearch.userProfile;
 
 import com.cvsearch.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,6 +23,7 @@ public class UserProfile {
     private String certifications;
     @OneToOne
     @JoinColumn(name = "user_id") 
+    @JsonIgnoreProperties({"profile"})
     private User user;
 
     public UserProfile() {

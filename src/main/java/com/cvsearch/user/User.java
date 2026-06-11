@@ -19,7 +19,7 @@ public class User {
 	private String email;
 	private String password;
 	private String role;
-    @OneToOne
+    @OneToOne(mappedBy = "user")
     private UserProfile profile;
     public User() {
 
