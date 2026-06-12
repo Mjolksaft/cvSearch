@@ -16,3 +16,5 @@ bin/
 *.log
 .DS_Store
 .opencode
+setup-data.bat
+setup-profile.ps1

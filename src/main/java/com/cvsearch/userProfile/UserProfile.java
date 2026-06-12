@@ -3,6 +3,7 @@ package com.cvsearch.userProfile;
 import com.cvsearch.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,11 +16,23 @@ public class UserProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(columnDefinition = "TEXT")
     private String summary;
+
+    @Column(columnDefinition = "TEXT")
     private String projects;
+
+    @Column(columnDefinition = "TEXT")
     private String skills;
+
+    @Column(columnDefinition = "TEXT")
     private String education;
+
+    @Column(columnDefinition = "TEXT")
     private String languages;
+
+    @Column(columnDefinition = "TEXT")
     private String certifications;
     @OneToOne
     @JoinColumn(name = "user_id") 

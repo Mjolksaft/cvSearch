@@ -1,0 +1,123 @@
+{
+  "projects": [
+    {
+      "name": "Date-Time Library",
+      "description": "Research-driven Rust library for robust temporal modeling with variable precision, interval reasoning, time zone support, leap second handling, and Python bindings.",
+      "technologies": [
+        "Rust",
+        "PyO3",
+        "Python",
+        "Streamlit"
+      ],
+      "highlights": [
+        "Designed a custom temporal model supporting variable-precision date and time representations from year to millisecond granularity",
+        "Implemented interval-based temporal reasoning using Allen interval algebra and three-valued logic",
+        "Developed support for UTC, TAI, and Unix time representations with conversion between formats",
+        "Implemented leap second detection and handling using official IERS leap second data",
+        "Created date-time arithmetic operations including second, minute, hour, day, month, and year calculations",
+        "Implemented parsing, validation, and normalization of temporal values",
+        "Developed Unix timestamp conversion with temporal edge-case handling",
+        "Created Python bindings using PyO3",
+        "Built comprehensive unit tests covering leap years, leap seconds, interval relations, and timestamp conversions"
+      ],
+      "category": "systems",
+      "strengths": [
+        "systems",
+        "algorithms",
+        "research",
+        "testing"
+      ]
+    },
+    {
+      "name": "HKR Beauty Salon",
+      "description": "Fullstack web application for a beauty salon featuring booking management, authentication, email notifications, and customer loyalty functionality.",
+      "technologies": [
+        "React",
+        "Node.js",
+        "Express",
+        "MongoDB",
+        "JWT",
+        "Google OAuth",
+        "JavaScript"
+      ],
+      "highlights": [
+        "Built user registration and login functionality using JWT authentication",
+        "Integrated Google OAuth authentication",
+        "Implemented appointment booking and reservation workflows",
+        "Designed MongoDB models for users, bookings, employees, services, and available times",
+        "Created REST APIs for users, bookings, employees, services, mail, statistics, and administration",
+        "Implemented role-based authorization for admin and customer accounts",
+        "Built email confirmation functionality for customer bookings",
+        "Developed customer loyalty and discount coupon functionality",
+        "Created administrative statistics dashboards"
+      ],
+      "category": "fullstack",
+      "strengths": [
+        "backend",
+        "frontend",
+        "authentication",
+        "database-design"
+      ]
+    },
+    {
+      "name": "Smart House Backend",
+      "description": "Backend system for controlling and managing smart home devices through authenticated REST APIs.",
+      "technologies": [
+        "Node.js",
+        "Express",
+        "JWT",
+        "REST API",
+        "JavaScript"
+      ],
+      "highlights": [
+        "Designed REST APIs for authentication and smart device management",
+        "Implemented JWT-based authentication and authorization",
+        "Created secure login and registration endpoints",
+        "Developed middleware for protecting authenticated routes",
+        "Implemented APIs for controlling smart house devices using command-based requests",
+        "Built support for LCD display messaging through backend endpoints",
+        "Designed backend architecture suitable for IoT device communication",
+        "Implemented secure access control for connected devices"
+      ],
+      "category": "backend",
+      "strengths": [
+        "backend",
+        "authentication",
+        "api-design",
+        "iot"
+      ]
+    },
+    {
+      "name": "Combitech Android Application",
+      "description": "Android application built using clean architecture principles, repository pattern, dependency injection, and modern Android development practices.",
+      "technologies": [
+        "Kotlin",
+        "Android",
+        "Room",
+        "Retrofit",
+        "Dagger",
+        "Hilt",
+        "Coroutines",
+        "Flow"
+      ],
+      "highlights": [
+        "Implemented feature-based clean architecture with separation of data, domain, and presentation layers",
+        "Designed repository interfaces and implementations to decouple business logic from data access",
+        "Used Room for local persistence and Retrofit for remote API communication",
+        "Implemented use case driven architecture for business operations",
+        "Used Kotlin Flow for asynchronous data streaming and state management",
+        "Implemented dependency injection using Dagger/Hilt modules",
+        "Mapped DTOs into domain models to isolate external API contracts",
+        "Created reusable UI components and ViewModels",
+        "Applied MVVM and clean architecture principles throughout the application"
+      ],
+      "category": "mobile",
+      "strengths": [
+        "architecture",
+        "mobile",
+        "dependency-injection",
+        "clean-code"
+      ]
+    }
+  ]
+}

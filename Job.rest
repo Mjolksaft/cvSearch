@@ -6,7 +6,7 @@ Content-Type: application/json
 
 {
   "title": "Software Engineer",
-  "companyId": 2,
+  "companyId": 1,
   "description": "Java backend role",
   "status": "Applied",
   "appliedDate": "2026-05-29"
@@ -15,10 +15,6 @@ Content-Type: application/json
 
 ############################################
 GET http://localhost:8080/api/jobs/1
-
-{
-  "id": 1
-}
 
 ############################################
 PUT http://localhost:8080/api/jobs/1
@@ -42,3 +38,9 @@ Content-Type: application/json
 {
   "title": "hello world"
 }
+
+#########################################
+GET http://localhost:8080/api/jobs/1/cv-prompt
+
+######################################
+GET http://localhost:8080/api/jobs/fetch?q=java&limit=100
