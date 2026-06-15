@@ -39,6 +39,11 @@ public class Job {
 	private LocalDate deadline;
 	@NotNull
 	private LocalDate appliedDate;
+	@NotNull
+	private boolean saved = false;
+
+	@Column(length = 100)
+	private String employmentType;
 
 	public Job() {
 	}
@@ -54,7 +59,7 @@ public class Job {
 	}
 
 	public Long getId() {
-		return id;
+		return this.id;
 	}
 
 	public void setId(Long id) {
@@ -62,7 +67,7 @@ public class Job {
 	}
 
 	public Long getExternalId() {
-		return externalId;
+		return this.externalId;
 	}
 
 	public void setExternalId(Long externalId) {
@@ -70,7 +75,7 @@ public class Job {
 	}
 
 	public String getTitle() {
-		return title;
+		return this.title;
 	}
 
 	public void setTitle(String title) {
@@ -78,7 +83,7 @@ public class Job {
 	}
 
 	public Company getCompany() {
-		return company;
+		return this.company;
 	}
 
 	public void setCompany(Company company) {
@@ -86,7 +91,7 @@ public class Job {
 	}
 
 	public String getDescription() {
-		return description;
+		return this.description;
 	}
 
 	public void setDescription(String description) {
@@ -94,7 +99,7 @@ public class Job {
 	}
 
 	public String getStatus() {
-		return status;
+		return this.status;
 	}
 
 	public void setStatus(String status) {
@@ -118,10 +123,26 @@ public class Job {
 	}
 
 	public LocalDate getAppliedDate() {
-		return appliedDate;
+		return this.appliedDate;
 	}
 
 	public void setAppliedDate(LocalDate appliedDate) {
 		this.appliedDate = appliedDate;
+	}
+
+	public Boolean isSaved() {
+		return this.saved;
+	}
+
+	public void setSaved(Boolean saved) {
+		this.saved = saved;
+	}
+
+	public String getEmploymentType() {
+		return this.employmentType;
+	}
+
+	public void setEmploymentType(String employmentType) {
+		this.employmentType = employmentType;
 	}
 }

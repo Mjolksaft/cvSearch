@@ -12,5 +12,7 @@ public record JobResponse(
 		@NotBlank String companyName,
 		@NotBlank String description,
 		@NotNull String status,
-		@NotNull LocalDate appliedDate) {
+		@NotNull LocalDate appliedDate,
+		@NotNull Boolean saved,
+		String employmentType) {
 }

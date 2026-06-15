@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>CV - <span th:text="${name}">Name</span></title>
+
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+
+        .profile-image-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .profile-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+
+            border-radius: 50%;
+
+            border: 4px solid #2c3e50;
+
+            display: block;
+            margin: 0 auto;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9pt;
+            line-height: 1.35;
+            color: #222;
+            margin: 0;
+        }
+
+        .container {
+            display: table;
+            width: 100%;
+        }
+
+        .sidebar {
+            display: table-cell;
+            width: 28%;
+            background: #f1f3f5;
+            padding: 18px 14px;
+            vertical-align: top;
+        }
+
+        .main {
+            display: table-cell;
+            width: 72%;
+            padding: 18px 18px;
+            vertical-align: top;
+        }
+
+        h1 {
+            font-size: 20pt;
+            margin: 0;
+            color: #111;
+        }
+
+        .role {
+            font-size: 10pt;
+            color: #555;
+            margin-top: 4px;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 10pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #222;
+            padding-bottom: 3px;
+            margin: 12px 0 6px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar .section-title {
+            border-bottom: 1px solid #999;
+        }
+
+        .summary {
+            font-size: 9.5pt;
+            margin-bottom: 8px;
+        }
+
+        .contact-item,
+        .skill-item,
+        .language-item,
+        .cert-item {
+            font-size: 8.8pt;
+            margin-bottom: 5px;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            background: #dfe3e6;
+            padding: 3px 6px;
+            margin: 2px 2px 3px 0;
+            border-radius: 3px;
+            font-size: 8pt;
+        }
+
+        .project {
+            margin-bottom: 10px;
+        }
+
+        .project-name {
+            font-weight: bold;
+            font-size: 10pt;
+            margin-bottom: 1px;
+        }
+
+        .project-tech {
+            font-size: 8.3pt;
+            color: #555;
+            margin-bottom: 2px;
+        }
+
+        .project-desc {
+            font-size: 9pt;
+            margin-bottom: 2px;
+        }
+
+        ul {
+            margin: 3px 0 0 14px;
+            padding: 0;
+        }
+
+        li {
+            font-size: 8.6pt;
+            margin-bottom: 2px;
+        }
+
+        .education-item {
+            margin-bottom: 7px;
+        }
+
+        .degree {
+            font-weight: bold;
+            font-size: 9.2pt;
+        }
+
+        .school {
+            color: #555;
+            font-size: 8.6pt;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <h1 th:text="${name}">David Kalla</h1>
+            <div class="profile-image-container" th:if="${profileImage}">
+                <img th:src="${profileImage}" alt="Profile Picture" class="profile-image" />
+            </div>
+
+            <div class="role" th:if="${jobTitle}">
+                Tailored for <strong th:text="${jobTitle}">Software Developer</strong>
+                <span th:if="${companyName}"> at <span th:text="${companyName}">Company</span></span>
+            </div>
+
+            <div th:if="${email != null or phone != null or location != null or github != null or linkedin != null}">
+                <div class="section-title">Contact</div>
+                <div class="contact-item" th:if="${email}" th:text="${email}">email@example.com</div>
+                <div class="contact-item" th:if="${phone}" th:text="${phone}">+46...</div>
+                <div class="contact-item" th:if="${location}" th:text="${location}">Sweden</div>
+                <div class="contact-item" th:if="${github}" th:text="${github}">github.com/user</div>
+                <div class="contact-item" th:if="${linkedin}" th:text="${linkedin}">linkedin.com/in/user</div>
+            </div>
+
+            <div th:if="${skills != null and !skills.isEmpty()}">
+                <div class="section-title">Skills</div>
+                <span class="skill-tag" th:each="skill : ${skills}" th:text="${skill}">Java</span>
+            </div>
+
+            <div th:if="${languages != null and !languages.isEmpty()}">
+                <div class="section-title">Languages</div>
+                <div class="language-item" th:each="lang : ${languages}" th:text="${lang}">Swedish</div>
+            </div>
+
+            <div th:if="${certifications != null and !certifications.isEmpty()}">
+                <div class="section-title">Certifications</div>
+                <div class="cert-item" th:each="cert : ${certifications}" th:text="${cert}">Certification</div>
+            </div>
+        </div>
+
+        <div class="main">
+
+            <div th:if="${summary != null and !summary.isEmpty()}">
+                <div class="section-title">Profile</div>
+                <div class="summary" th:text="${summary}">
+                    Motivated software developer...
+                </div>
+            </div>
+
+            <div th:if="${projects != null and !projects.isEmpty()}">
+                <div class="section-title">Selected Projects</div>
+
+                <div class="project" th:each="project : ${projects}">
+                    <div class="project-name" th:text="${project.name}">Project Name</div>
+
+                    <div class="project-tech"
+                        th:if="${project.technologies != null and !project.technologies.isEmpty()}">
+                        <strong>Technologies:</strong>
+                        <span th:text="${#strings.listJoin(project.technologies, ', ')}">Java, Spring Boot</span>
+                    </div>
+
+                    <div class="project-desc" th:if="${project.description != null and !project.description.isEmpty()}"
+                        th:text="${project.description}">
+                        Project description
+                    </div>
+
+                    <ul th:if="${project.highlights != null and !project.highlights.isEmpty()}">
+                        <li th:each="hl : ${project.highlights}" th:text="${hl}">Highlight</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div th:if="${education != null and !education.isEmpty()}">
+                <div class="section-title">Education</div>
+
+                <div class="education-item" th:each="edu : ${education}">
+                    <div class="degree" th:text="${edu.degree}">BSc Computer Science</div>
+                    <div class="school">
+                        <span th:text="${edu.school}">University</span>
+                        <span th:if="${edu.year != null and !edu.year.isEmpty()}">
+                            — <span th:text="${edu.year}">2026</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${coursework != null and !coursework.isEmpty()}">
+                <div class="section-title">Relevant Coursework</div>
+                <ul>
+                    <li th:each="course : ${coursework}" th:text="${course}">Algorithms and Data Structures</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

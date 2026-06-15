@@ -1,7 +1,9 @@
 package com.cvsearch.job;
 
-import java.util.List;
+import java.time.LocalDate;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -26,9 +28,9 @@ public class JobService {
 		this.companyRepository = companyRepository;
 	}
 
-	public List<JobResponse> GetAllJobs() {
-		List<Job> jobs = repository.findAll();
-		return jobMapper.toResponseList(jobs);
+	public Page<JobResponse> GetAllJobs(Pageable pageable) {
+		Page<Job> jobs = repository.findAll(pageable);
+		return jobs.map(jobMapper::toResponse);
 	}
 
 	public JobResponse getJobById(Long id) {
@@ -80,8 +82,10 @@ public class JobService {
 		repository.deleteById(id);
 	}
 
-	public List<JobResponse> search(String company, String title, String status) {
-		List<Job> jobs = repository.searchJobs(company, title, status);
-		return jobMapper.toResponseList(jobs);
+	public Page<JobResponse> search(String company, String title, String status,
+			String location, Boolean saved, LocalDate appliedBefore, LocalDate appliedAfter,
+			Pageable pageable) {
+		Page<Job> jobs = repository.searchJobs(company, title, status, location, saved, appliedBefore, appliedAfter, pageable);
+		return jobs.map(jobMapper::toResponse);
 	}
 }

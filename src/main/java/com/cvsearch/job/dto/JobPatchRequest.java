@@ -7,5 +7,7 @@ public record JobPatchRequest(
         Long companyId,
         String description,
         String status,
-        LocalDate appliedDate) {
+        LocalDate appliedDate,
+        Boolean saved,
+        String employmentType) {
 }

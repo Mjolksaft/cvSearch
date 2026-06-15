@@ -51,7 +51,8 @@ class JobServiceTest {
             company.getId(),
             "Build stuff",
             "Applied",
-            LocalDate.of(2026, 6, 1)
+            LocalDate.of(2026, 6, 1),
+            null
         );
 
         JobResponse response = jobService.create(request);

@@ -1,46 +1,43 @@
+GET http://localhost:8080/api/jobs/1/cv-prompt?userId=1
+
+### Generate tailored CV PDF
+POST http://localhost:8080/api/jobs/1/cv?userId=1&template=sidebar
+Content-Type: application/json
+
+{
+  "summary": "Developer with experience in...",
+  "skills": ["Java", "Spring Boot"],
+  "projects": [
+    {
+      "name": "CV Search App",
+      "description": "A job search API...",
+      "technologies": ["Java", "Spring Boot"],
+      "highlights": ["Built REST endpoints", "Integrated external APIs"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "BSc Computer Science",
+      "school": "University",
+      "year": "2024"
+    }
+  ],
+  "languages": ["Swedish (native)", "English (fluent)"],
+  "certifications": []
+}
+
+##################################
 GET http://localhost:8080/api/jobs
 
-############################################
-POST http://localhost:8080/api/jobs
+#############################
+PATCH http://localhost:8080/api/jobs/3
 Content-Type: application/json
 
 {
-  "title": "Software Engineer",
-  "companyId": 1,
-  "description": "Java backend role",
-  "status": "Applied",
-  "appliedDate": "2026-05-29"
+  "saved": true
 }
 
-
-############################################
-GET http://localhost:8080/api/jobs/1
-
-############################################
-PUT http://localhost:8080/api/jobs/1
-Content-Type: application/json
-
-{
-    "title": "poopy",
-    "companyId": 1,
-    "description": "hello",
-    "status": "hello",
-    "appliedDate": "2026-05-29"
-}
-
-#############################################
-DELETE http://localhost:8080/api/jobs/1
-
-########################################
-PATCH  http://localhost:8080/api/jobs/2
-Content-Type: application/json
-
-{
-  "title": "hello world"
-}
-
-#########################################
-GET http://localhost:8080/api/jobs/1/cv-prompt
-
-######################################
-GET http://localhost:8080/api/jobs/fetch?q=java&limit=100
+# GET /api/jobs?saved=true
+# GET /api/jobs?location=stockholm&employmentType=Full-time
+# GET /api/jobs?appliedAfter=2026-01-01&appliedBefore=2026-06-01
+# GET /api/jobs?company=google&saved=true&location=stockholm

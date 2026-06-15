@@ -10,5 +10,6 @@ public record JobRequest(
 		@NotNull Long companyId,
 		@NotBlank String description,
 		@NotBlank String status,
-		@NotNull LocalDate appliedDate) {
+		@NotNull LocalDate appliedDate,
+		String employmentType) {
 }

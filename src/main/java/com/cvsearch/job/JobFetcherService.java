@@ -205,6 +205,10 @@ public class JobFetcherService {
             }
         }
 
+        String employmentType = Optional.ofNullable(hit.employment_type())
+                .map(ApiHit.ApiEmploymentType::label)
+                .orElse(null);
+
         Job job = new Job(
                 hit.headline(),
                 company,
@@ -214,6 +218,7 @@ public class JobFetcherService {
                 deadline,
                 java.time.LocalDate.now());
         job.setExternalId(externalId);
+        job.setEmploymentType(employmentType);
         jobRepository.save(job);
     }
 

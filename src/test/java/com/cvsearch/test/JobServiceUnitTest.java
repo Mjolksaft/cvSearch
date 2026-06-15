@@ -21,6 +21,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,18 +49,22 @@ class JobServiceUnitTest {
 
     private final Company company = new Company("Google", "https://www.google.com/", "Kristianstad", null);
     private final Job job = new Job("SWE", company, "Build stuff", "Applied", null, null, LocalDate.of(2026, 6, 1));
-    private final JobResponse response = new JobResponse(1L, "SWE", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1));
+    private final JobResponse response = new JobResponse(1L, "SWE", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null);
 
     @Test
-    void getAllJobs_ShouldReturnList() {
-        when(repository.findAll()).thenReturn(List.of(job));
-        when(jobMapper.toResponseList(any())).thenReturn(List.of(response));
+    void getAllJobs_ShouldReturnPage() {
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Job> jobPage = new PageImpl<>(List.of(job), pageable, 1);
 
-        List<JobResponse> result = jobService.GetAllJobs();
+        when(repository.findAll(any(Pageable.class))).thenReturn(jobPage);
+        when(jobMapper.toResponse(job)).thenReturn(response);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).title()).isEqualTo("SWE");
-        verify(repository).findAll();
+        Page<JobResponse> result = jobService.GetAllJobs(pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).title()).isEqualTo("SWE");
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        verify(repository).findAll(any(Pageable.class));
     }
 
     @Test
@@ -83,7 +92,7 @@ class JobServiceUnitTest {
 
     @Test
     void create_ShouldSaveAndReturnJob() {
-        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1));
+        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null);
         company.setId(1L);
 
         when(jobMapper.toEntity(request)).thenReturn(job);
@@ -100,7 +109,7 @@ class JobServiceUnitTest {
 
     @Test
     void create_ShouldThrowWhenCompanyNotFound() {
-        JobRequest request = new JobRequest("SWE", 99L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1));
+        JobRequest request = new JobRequest("SWE", 99L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null);
 
         when(jobMapper.toEntity(request)).thenReturn(job);
         when(companyRepository.findById(99L)).thenReturn(Optional.empty());
@@ -115,7 +124,7 @@ class JobServiceUnitTest {
 
     @Test
     void updateJobById_ShouldUpdateAndReturnJob() {
-        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1));
+        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null);
         company.setId(1L);
 
         when(repository.findById(1L)).thenReturn(Optional.of(job));
@@ -134,7 +143,7 @@ class JobServiceUnitTest {
 
     @Test
     void updateJobById_ShouldThrowWhenNotFound() {
-        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1));
+        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null);
 
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
@@ -148,12 +157,12 @@ class JobServiceUnitTest {
 
     @Test
     void partialUpdateJobById_ShouldApplyPatchAndSave() {
-        JobPatchRequest patch = new JobPatchRequest("Updated Title", null, null, null, null);
+        JobPatchRequest patch = new JobPatchRequest("Updated Title", null, null, null, null, null, null);
 
         when(repository.findById(1L)).thenReturn(Optional.of(job));
         doNothing().when(jobMapper).applyPartialUpdate(patch, job);
         when(repository.save(job)).thenReturn(job);
-        when(jobMapper.toResponse(job)).thenReturn(new JobResponse(1L, "Updated Title", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1)));
+        when(jobMapper.toResponse(job)).thenReturn(new JobResponse(1L, "Updated Title", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null));
 
         JobResponse result = jobService.partialUpdateJobById(1L, patch);
 
@@ -164,7 +173,7 @@ class JobServiceUnitTest {
 
     @Test
     void partialUpdateJobById_WithCompanyChange_ShouldUpdateCompany() {
-        JobPatchRequest patch = new JobPatchRequest(null, 2L, null, null, null);
+        JobPatchRequest patch = new JobPatchRequest(null, 2L, null, null, null, null, null);
         Company newCompany = new Company("Meta", "https://meta.com", "Menlo Park", null);
         newCompany.setId(2L);
 
@@ -183,7 +192,7 @@ class JobServiceUnitTest {
 
     @Test
     void partialUpdateJobById_ShouldThrowWhenNotFound() {
-        JobPatchRequest patch = new JobPatchRequest("Title", null, null, null, null);
+        JobPatchRequest patch = new JobPatchRequest("Title", null, null, null, null, null, null);
 
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
@@ -207,25 +216,30 @@ class JobServiceUnitTest {
         String companyName = "Google";
         String title = "SWE";
         String status = "Applied";
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Job> jobPage = new PageImpl<>(List.of(job), pageable, 1);
 
-        when(repository.searchJobs(companyName, title, status)).thenReturn(List.of(job));
-        when(jobMapper.toResponseList(any())).thenReturn(List.of(response));
+        when(repository.searchJobs(companyName, title, status, null, null, null, null, pageable)).thenReturn(jobPage);
+        when(jobMapper.toResponse(job)).thenReturn(response);
 
-        List<JobResponse> result = jobService.search(companyName, title, status);
+        Page<JobResponse> result = jobService.search(companyName, title, status, null, null, null, null, pageable);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).companyName()).isEqualTo("Google");
-        verify(repository).searchJobs(companyName, title, status);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).companyName()).isEqualTo("Google");
+        verify(repository).searchJobs(companyName, title, status, null, null, null, null, pageable);
     }
 
     @Test
     void search_WithNoFilters_ShouldReturnAll() {
-        when(repository.searchJobs(null, null, null)).thenReturn(List.of(job));
-        when(jobMapper.toResponseList(any())).thenReturn(List.of(response));
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Job> jobPage = new PageImpl<>(List.of(job), pageable, 1);
 
-        List<JobResponse> result = jobService.search(null, null, null);
+        when(repository.searchJobs(null, null, null, null, null, null, null, pageable)).thenReturn(jobPage);
+        when(jobMapper.toResponse(job)).thenReturn(response);
 
-        assertThat(result).hasSize(1);
-        verify(repository).searchJobs(null, null, null);
+        Page<JobResponse> result = jobService.search(null, null, null, null, null, null, null, pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        verify(repository).searchJobs(null, null, null, null, null, null, null, pageable);
     }
 }

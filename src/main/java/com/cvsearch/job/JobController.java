@@ -1,7 +1,12 @@
 package com.cvsearch.job;
 
-import java.util.List;
+import java.time.LocalDate;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,15 +30,22 @@ public class JobController {
 	}
 
 	@GetMapping
-	public List<JobResponse> getAll(
+	public Page<JobResponse> getAll(
 			@RequestParam(required = false) String company,
 			@RequestParam(required = false) String title,
-			@RequestParam(required = false) String status) {
+			@RequestParam(required = false) String status,
+			@RequestParam(required = false) String location,
+			@RequestParam(required = false) Boolean saved,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appliedBefore,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appliedAfter,
+			@PageableDefault(sort = "appliedDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
-		if (company != null || title != null || status != null) {
-			return service.search(company, title, status);
+		if (company != null || title != null || status != null
+				|| location != null || saved != null
+				|| appliedBefore != null || appliedAfter != null) {
+			return service.search(company, title, status, location, saved, appliedBefore, appliedAfter, pageable);
 		}
-		return service.GetAllJobs();
+		return service.GetAllJobs(pageable);
 	}
 
 	@GetMapping("/{id}")

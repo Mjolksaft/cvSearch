@@ -27,18 +27,45 @@ public class CvPromptService {
                 .orElseThrow(() -> new EntityNotFoundException("Profile not found for user id: " + userId));
 
         return """
-                I need you to write a professional CV tailored to the following job.
-                Highlight my relevant skills, experience, and projects that match what the employer is looking for.
+                I need you to filter and tailor my profile for the following job.
+                Do NOT write a full CV. Instead, return ONLY a JSON object with my profile
+                fields rewritten to highlight what is most relevant for this specific job.
 
                 ## Important Instructions
                 - Do not invent professional work experience.
-                - If work experience is missing, prioritize projects, education, and technical coursework.
-                - Write the CV for a junior / graduate developer profile.
+                - Prioritize projects, education, and technical coursework over work experience.
+                - Write for a junior / graduate developer profile.
                 - Match the job requirements honestly.
                 - Emphasize transferable experience from projects.
                 - Use Swedish if the job ad is in Swedish.
-                - Keep it concise and suitable for a one-page CV.
-                - Do not claim experience with technologies that are not listed in my profile.
+                - Keep the summary concise (2-3 sentences).
+                - List at most 10 skills, ordered by relevance to this job.
+                - Include at most 3 projects, ordered by relevance.
+                - At most 4 highlights per project.
+                - Do not claim experience with technologies not in my profile.
+
+                Return your response as valid JSON in this exact format (no markdown, no code blocks):
+                {
+                  "summary": "rewritten summary here",
+                  "skills": ["skill1", "skill2"],
+                  "projects": [
+                    {
+                      "name": "Project name",
+                      "description": "Brief description focusing on relevant aspects",
+                      "technologies": ["tech1", "tech2"],
+                      "highlights": ["relevant highlight 1", "relevant highlight 2"]
+                    }
+                  ],
+                  "education": [
+                    {
+                      "degree": "Degree name",
+                      "school": "School name",
+                      "year": "2024"
+                    }
+                  ],
+                  "languages": ["Language (level)"],
+                  "certifications": ["Certification name"]
+                }
 
                 ## Job Details
                 Title: %s
@@ -66,7 +93,7 @@ public class CvPromptService {
                 Certifications:
                 %s
 
-                Please write a tailored CV that emphasizes the experience and skills most relevant to this job.
+                Return ONLY the JSON object, nothing else.
                 """
                 .formatted(
                         safe(job.getTitle()),

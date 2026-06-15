@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>CV - <span th:text="${name}">Name</span></title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.2cm 1.2cm 1cm 1.2cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 9pt;
+            line-height: 1.35;
+            color: #222;
+        }
+        h1 {
+            font-size: 16pt;
+            margin: 0 0 1px 0;
+            color: #1a1a1a;
+        }
+        .subtitle {
+            font-size: 9pt;
+            color: #555;
+            margin: 0 0 6px 0;
+        }
+        .section-title {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1px;
+            margin: 8px 0 3px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary {
+            margin: 3px 0 2px 0;
+            font-size: 9pt;
+        }
+        .skill-tag {
+            display: inline-block;
+            background: #e8e8e8;
+            padding: 1px 5px;
+            margin: 1px 2px 1px 0;
+            font-size: 8pt;
+            border-radius: 2px;
+        }
+        .project-name {
+            font-weight: bold;
+            font-size: 9.5pt;
+            margin: 5px 0 0 0;
+        }
+        .project-tech {
+            font-size: 8pt;
+            color: #555;
+            margin: 0 0 1px 0;
+        }
+        .project-desc {
+            margin: 0 0 1px 0;
+            font-size: 9pt;
+        }
+        .highlights {
+            margin: 0 0 1px 0;
+            padding-left: 14px;
+        }
+        .highlights li {
+            font-size: 8.5pt;
+            margin-bottom: 0px;
+        }
+        .education-item {
+            margin: 3px 0;
+        }
+        .education-item .degree {
+            font-weight: bold;
+            font-size: 9pt;
+        }
+        .education-item .school {
+            font-size: 8.5pt;
+            color: #555;
+        }
+        .lang-item {
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 9pt;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <h1 th:text="${name}">Your Name</h1>
+    <div class="subtitle" th:if="${jobTitle}">
+        CV tailored for: <strong><span th:text="${jobTitle}">Job Title</span></strong>
+        at <span th:text="${companyName}">Company</span>
+    </div>
+
+    <!-- Summary -->
+    <div th:if="${summary != null and !summary.isEmpty()}">
+        <div class="section-title">Summary</div>
+        <div class="summary" th:text="${summary}">Summary text</div>
+    </div>
+
+    <!-- Skills -->
+    <div th:if="${skills != null and !skills.isEmpty()}">
+        <div class="section-title">Skills</div>
+        <div>
+            <span class="skill-tag" th:each="skill : ${skills}" th:text="${skill}">Skill</span>
+        </div>
+    </div>
+
+    <!-- Projects -->
+    <div th:if="${projects != null and !projects.isEmpty()}">
+        <div class="section-title">Projects</div>
+        <div th:each="project : ${projects}">
+            <div class="project-name" th:text="${project.name}">Project Name</div>
+            <div class="project-tech" th:if="${project.technologies != null and !project.technologies.isEmpty()}">
+                <strong>Technologies:</strong> <span th:text="${#strings.listJoin(project.technologies, ', ')}">Tech list</span>
+            </div>
+            <div class="project-desc" th:if="${project.description != null and !project.description.isEmpty()}" th:text="${project.description}">Description</div>
+            <ul class="highlights" th:if="${project.highlights != null and !project.highlights.isEmpty()}">
+                <li th:each="hl : ${project.highlights}" th:text="${hl}">Highlight</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Education -->
+    <div th:if="${education != null and !education.isEmpty()}">
+        <div class="section-title">Education</div>
+        <div th:each="edu : ${education}" class="education-item">
+            <div class="degree" th:text="${edu.degree}">Degree</div>
+            <div class="school">
+                <span th:text="${edu.school}">School</span>
+                <span th:if="${edu.year != null and !edu.year.isEmpty()}"> — <span th:text="${edu.year}">Year</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Languages -->
+    <div th:if="${languages != null and !languages.isEmpty()}">
+        <div class="section-title">Languages</div>
+        <div>
+            <span class="lang-item" th:each="lang : ${languages}" th:text="${lang}">Language</span>
+        </div>
+    </div>
+
+    <!-- Certifications -->
+    <div th:if="${certifications != null and !certifications.isEmpty()}">
+        <div class="section-title">Certifications</div>
+        <div>
+            <span class="lang-item" th:each="cert : ${certifications}" th:text="${cert}">Certification</span>
+        </div>
+    </div>
+
+</body>
+</html>
