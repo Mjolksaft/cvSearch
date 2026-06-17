@@ -10,7 +10,12 @@
   </style>
 </head>
 <body>
-  <button id="checkBtn">Check LinkedIn</button>
+  <div style="margin-bottom: 8px;">
+    <label for="jobCount" style="font-size: 13px; display: block; margin-bottom: 4px;">Jobs to find:</label>
+    <input type="number" id="jobCount" value="10" min="1" max="50"
+           style="width: 100%; padding: 6px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+  </div>
+  <button id="checkBtn">Find Jobs on LinkedIn</button>
   <div id="status">Ready</div>
   <script src="popup.js"></script>
 </body>

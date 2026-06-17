@@ -4,12 +4,13 @@ browser.runtime.onMessage.addListener(async (message) => {
     console.log("Background received:", message);
 
     if (message.action === "crawlLinkedIn") {
+        const jobCount = message.count || 10;
         try {
             // Check if already on LinkedIn
             const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true });
 
             if (currentTab && currentTab.url && currentTab.url.startsWith("https://www.linkedin.com/jobs/")) {
-                await scrapeAndSave(currentTab.id);
+                await scrapeAndSave(currentTab.id, jobCount);
                 return;
             }
 
@@ -30,7 +31,7 @@ browser.runtime.onMessage.addListener(async (message) => {
                 browser.tabs.onUpdated.addListener(listener);
             });
 
-            await scrapeAndSave(linkedinTab.id);
+            await scrapeAndSave(linkedinTab.id, jobCount);
             await browser.tabs.remove(linkedinTab.id);
 
             return { status: "ok" };
@@ -41,8 +42,8 @@ browser.runtime.onMessage.addListener(async (message) => {
     }
 });
 
-async function scrapeAndSave(tabId) {
-    const response = await browser.tabs.sendMessage(tabId, { action: "crawlJobs" });
+async function scrapeAndSave(tabId, count) {
+    const response = await browser.tabs.sendMessage(tabId, { action: "crawlJobs", count });
 
     if (!response || !response.jobs || response.jobs.length === 0) {
         console.log("No jobs found");

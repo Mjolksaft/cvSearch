@@ -1,6 +1,12 @@
 const BACKEND_URL = "http://localhost:8080";
 const statusEl = document.getElementById("status");
 const checkBtn = document.getElementById("checkBtn");
+const jobCountInput = document.getElementById("jobCount");
+
+function getJobCount() {
+  const val = parseInt(jobCountInput.value, 10);
+  return (val > 0 && val <= 50) ? val : 10;
+}
 
 function setStatus(message, isError) {
   statusEl.textContent = message;
@@ -54,7 +60,8 @@ checkBtn.addEventListener("click", async () => {
 async function scrapeAndSave(tabId) {
   setStatus("Scraping jobs...");
 
-  const response = await browser.tabs.sendMessage(tabId, { action: "crawlJobs" });
+  const count = getJobCount();
+  const response = await browser.tabs.sendMessage(tabId, { action: "crawlJobs", count });
 
   if (!response || !response.jobs || response.jobs.length === 0) {
     setStatus("No jobs found", true);
