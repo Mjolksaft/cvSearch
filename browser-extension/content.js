@@ -104,3 +104,30 @@ async function scrapeJobs(requestedCount) {
 
   return { jobs: validJobs.slice(0, requestedCount) };
 }
+
+browser.runtime.onMessage.addListener((message) => {
+    console.log("LinkedIn content received:", message);
+
+    if (message.action === "extractLinkedInDescription") {
+        const description = extractLinkedInDescription();
+
+        return Promise.resolve({
+            jobId: message.jobId,
+            description
+        });
+    }
+});
+
+function extractLinkedInDescription() {
+    const textBox = document.querySelector('[data-testid="expandable-text-box"]');
+
+    if (!textBox) {
+        console.log("No description box found");
+        return null;
+    }
+
+    return textBox.innerText
+        .replace(/…\s*mer$/i, "")
+        .replace(/\n\s*\n\s*\n+/g, "\n\n")
+        .trim();
+}

@@ -85,25 +85,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Auto-trigger description fetch on page load if description is missing
-    (function () {
-        var btn = document.getElementById('fetch-desc-btn');
-        if (btn) {
-            var jobId = btn.dataset.jobId;
-            var url = btn.dataset.url;
-            var statusEl = document.getElementById('desc-status');
-            if (statusEl) {
-                statusEl.className = 'small me-2 text-info';
-                statusEl.textContent = 'Auto-fetching description from LinkedIn...';
-                statusEl.classList.remove('d-none');
-            }
-            injectTrigger({
-                action: 'description',
-                'job-id': jobId,
-                url: url
-            });
+    document.getElementById("fetch-desc-btn")
+        .addEventListener("click", fetchDescription);
+
+    function fetchDescription(event) {
+        const btn = event.currentTarget;
+
+        const jobId = btn.dataset.jobId;
+        const url = btn.dataset.url;
+
+        console.log("Job ID:", jobId);
+        console.log("URL:", url);
+
+        window.postMessage({
+            type: "GET_LINKEDIN_DESC",
+            jobId: jobId,
+            url: url
+        }, "*");
+    }
+
+    // Auto-reload when description has been fetched
+    window.addEventListener("message", function (event) {
+        if (event.data?.type === "GET_LINKEDIN_DESC_DONE") {
+            console.log("Description fetched, reloading...");
+            setTimeout(function () { window.location.reload(); }, 500);
         }
-    })();
+    });
 
     if (!window.__profileData) return;
 

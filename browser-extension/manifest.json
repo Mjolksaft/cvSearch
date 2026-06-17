@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "CV Search",
   "version": "1.0",
-  "permissions": ["tabs", "http://localhost:8080/*"],
+  "permissions": ["tabs", "http://localhost:8080/*", "https://www.linkedin.com/*"],
   "browser_action": {
     "default_title": "CV Search",
     "default_popup": "popup/popup.html"
