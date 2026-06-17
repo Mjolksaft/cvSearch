@@ -104,54 +104,59 @@ Default: page 0, 20 items, sorted by `appliedDate,desc` (newest first).
 
 ## LinkedIn Controller Extension
 
-A Chrome extension (`browser-extension/`) that scrapes LinkedIn on demand, controlled by trigger elements in your web app pages.
+A Firefox extension (`browser-extension/`, Manifest V2) that scrapes LinkedIn on demand. It opens LinkedIn in a background tab, scrapes 3 job cards, and saves them to the backend — all triggered from the web app or the extension popup.
 
 ### How it works
 
-The extension is a **stateless companion** — no popup, no UI, no auto-scraping. It only activates when your web app tells it to.
+The flow is a pipeline across 4 script layers:
 
-**Trigger mechanism:** Your Thymeleaf templates inject a hidden element like:
-```html
-<div id="cvsearch-command"
-     data-action="search"
-     data-query="Java developer"
-     data-location="Stockholm"
-     data-max="25">
+```
+Web App (list.html)
+  └─ postMessage({ type: "CRAWL_LINKEDIN" })
+      └─ content-app.js (on localhost)
+          └─ browser.runtime.sendMessage({ action: "crawlLinkedIn" })
+              └─ background.js
+                  ├─ Opens LinkedIn in background tab (active: false)
+                  ├─ Waits for page load + 3s for cards to render
+                  ├─ Sends "crawlJobs" message to content.js
+                  │   └─ content.js scrapes up to 3 job cards
+                  ├─ POST /api/jobs/bulk ← saves to backend
+                  ├─ Closes LinkedIn tab
+                  └─ Returns { status: "ok" } → triggers page reload
 ```
 
-The extension's content script detects this element and tells the background script to:
-1. Open a LinkedIn tab (search or job detail)
-2. Scrape the data using the same extraction logic
-3. POST/PATCH the data to `localhost:8080`
-4. Close the LinkedIn tab
-5. Focus back on your web app
+### What each script does
 
-### Two flows
+| Script | Runs on | Role |
+|--------|---------|------|
+| `content.js` | `linkedin.com/jobs/*` | Listens for `"crawlJobs"` message, scrapes 3 job cards using `data-occludable-job-id` |
+| `content-app.js` | `http://localhost/*` | Listens for `CRAWL_LINKEDIN` postMessage from web app, forwards to background |
+| `background.js` | extension background | Orchestrates the whole crawl — opens tab, scrapes, saves, closes, returns result |
+| `popup/popup.js` | extension popup | Button to trigger the same crawl directly from the toolbar |
 
-| Flow | Trigger | What happens |
-|------|---------|-------------|
-| **Search jobs** | Click "Find jobs" in web app | Opens LinkedIn search, scrapes job cards, bulk-imports via `POST /api/jobs/bulk`, closes tab |
-| **Get description** | Click a job title | Opens the LinkedIn job detail, scrapes description using `componentkey="JobDetails_AboutTheJob_<id>"`, PATCHes it to the job, closes tab |
+### Web app integration
+
+The job list page (`jobs/list.html`) has a **"Find jobs on LinkedIn"** button that:
+1. Shows a Bootstrap spinner and disables itself while crawling
+2. Sends `postMessage({ type: "CRAWL_LINKEDIN" }, "*")`
+3. Auto-reloads the page when the crawl completes
 
 ### Why it's fast
 
-- **Already logged in** — uses your existing Chrome session, no separate browser
-- **Cached pages** — LinkedIn's SPA is already in your browser cache from normal use
-- **No networkidle waits** — scrapes as soon as the componentkey element renders
-- **No JSON-RPC overhead** — direct from tab to `localhost`
+- **Already logged in** — uses your existing Firefox session
+- **Background tab** — stays out of your way, no tab switching
+- **Direct fetch** — no intermediate server, tab → localhost
+- **Simple selectors** — relies on `data-occludable-job-id` (stable attribute)
 
 ### Setup
 
-1. Open `chrome://extensions`
-2. Enable "Developer mode" (toggle top-right)
-3. Click "Load unpacked"
-4. Select the `browser-extension/` directory
-5. Make sure CV Search is running on `http://localhost:8080`
+1. Open `about:debugging#/runtime/this-firefox`
+2. Click **"Load Temporary Add-on…"**
+3. Select the `browser-extension/manifest.json` file
+4. Make sure CV Search is running on `http://localhost:8080`
+5. Click **"Find jobs on LinkedIn"** on the web app (or the extension popup)
 
-> **Note:** LinkedIn uses hashed CSS class names that change per deployment. The extension relies on stable attributes:
-> - `data-occludable-job-id` / `data-anonymize-*` for finding job cards
-> - `componentkey="JobDetails_AboutTheJob_<id>"` for finding descriptions
-> - `href*="/company/"` for finding company names
+> **Note:** Firefox requires the content script match pattern for localhost without a port. The manifest uses `"http://localhost/*"` instead of `"http://localhost:8080/*"`. The `"http://localhost:8080/*"` permission is still listed separately so background.js can `fetch()` the backend.
 
 ## Example Workflow
 
@@ -159,7 +164,8 @@ The extension's content script detects this element and tells the background scr
 # 1. Fetch jobs from Arbetsförmedlingen
 GET /api/jobs/fetch?q=java
 
-# 2. Or import from LinkedIn via the browser extension (click "Find jobs" in the web app)
+# 2. Or import from LinkedIn — click "Find jobs on LinkedIn" in the web app
+#    (or use the extension popup button)
 
 # 3. Bookmark interesting ones
 PATCH /api/jobs/42
@@ -227,13 +233,13 @@ com.cvsearch/
     └── PageController.java                    (Thymeleaf frontend pages)
 
 browser-extension/
-├── manifest.json                              (Chrome Manifest V3)
-├── content.js                                 (trigger detection on web app)
+├── manifest.json                              (Firefox Manifest V2)
+├── content.js                                 (runs on linkedin.com/jobs/*, scrapes job cards)
+├── content-app.js                             (runs on localhost, forwards postMessage to background)
 ├── background.js                              (tab management, scraping orchestration)
-├── scraper-search.js                          (injected into LinkedIn search pages)
-├── scraper-description.js                     (injected into LinkedIn job detail pages)
-├── generate-icons.mjs                         (icon generator — run with Node.js)
-└── icons/                                     (generated PNG icons)
+├── popup/
+│   ├── popup.html                             (extension popup UI)
+│   └── popup.js                               (trigger crawl from popup button)
 
 src/main/resources/
 ├── templates/
@@ -293,14 +299,12 @@ mvn clean verify
 - ✅ CORS open for extension (`allowedOrigins("*")`)
 - ✅ Thymeleaf frontend (job list, detail, profile pages)
 - ✅ All security endpoints set to `permitAll()`
-- ✅ LinkedIn Controller Extension — Chrome MV3 extension controlled by trigger elements in web app
-  - `content.js` watches for `#cvsearch-command` triggers on web app pages
-  - `background.js` opens LinkedIn tabs, injects scrapers, POSTs data, closes tabs, returns focus
-  - `scraper-search.js` extracts job cards using `data-occludable-job-id` / `data-anonymize-*` attributes
-  - `scraper-description.js` extracts job descriptions using `componentkey` attribute
-  - Search flow: "Find jobs" button → modal → triggers extension → scrapes → bulk imports
-  - Description flow: auto-fetch on detail page + manual button → triggers extension → scrapes → PATCHes
-- ✅ MCP server removed — replaced by faster, simpler browser extension
+- ✅ LinkedIn Controller Extension — Firefox MV2 extension with background-tab scraping
+  - `content.js` extracts 3 job cards using `data-occludable-job-id` on `linkedin.com/jobs/*`
+  - `content-app.js` bridges from web app `postMessage` to extension `runtime.sendMessage`
+  - `background.js` opens LinkedIn in background tab, orchestrates scrape, saves to backend, closes tab
+  - Web app "Find jobs on LinkedIn" button shows loading spinner and auto-reloads on completion
+  - Popup button for manual trigger from the toolbar
 
 ### Planned
 - [ ] **Authentication** — JWT login/signup or Basic Auth
