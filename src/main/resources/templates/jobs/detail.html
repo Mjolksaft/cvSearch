@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'CV Search — ' + ${job.title()}">Job Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-briefcase-fill"></i> CV Search
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/jobs"><i class="bi bi-list-ul"></i> Jobs</a>
+                <a class="nav-link" href="/profile"><i class="bi bi-person-circle"></i> Profile</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/jobs" class="btn btn-outline-secondary btn-sm mb-3">
+            <i class="bi bi-arrow-left"></i> Back to jobs
+        </a>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2 class="card-title mb-1" th:text="${job.title()}">Title</h2>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-building"></i> <span th:text="${job.companyName()}">Company</span>
+                            <span th:if="${job.location()}" class="ms-3">
+                                <i class="bi bi-geo-alt"></i> <span th:text="${job.location()}">Location</span>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a th:if="${job.website()}" th:href="${job.website()}" target="_blank" rel="noopener noreferrer"
+                           class="btn btn-success">
+                            <i class="bi bi-box-arrow-up-right"></i> Apply
+                        </a>
+                        <button class="btn bookmark-btn"
+                                th:classappend="${job.saved()} ? 'btn-warning' : 'btn-outline-warning'"
+                                th:data-job-id="${job.id()}"
+                                th:data-saved="${job.saved()}">
+                            <i class="bi" th:classappend="${job.saved()} ? 'bi-bookmark-fill' : 'bi-bookmark'"></i>
+                            <span th:text="${job.saved()} ? 'Saved' : 'Save'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3 g-3">
+            <div class="col-md-3">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="text-muted small">Status</div>
+                        <span class="badge rounded-pill fs-6 mt-1"
+                              th:classappend="${job.status() == 'Fetched' ? 'bg-secondary' :
+                                               job.status() == 'Applied' ? 'bg-primary' :
+                                               job.status() == 'Interview' ? 'bg-info' :
+                                               job.status() == 'Rejected' ? 'bg-danger' :
+                                               job.status() == 'Offer' ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${job.status()}">Status</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="text-muted small">Applied Date</div>
+                        <div class="fw-medium mt-1" th:text="${#temporals.format(job.appliedDate(), 'yyyy-MM-dd')}">Date</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="text-muted small">Employment Type</div>
+                        <div class="fw-medium mt-1" th:text="${job.employmentType()} ?: 'N/A'">Type</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="text-muted small">Company ID</div>
+                        <div class="fw-medium mt-1" th:text="${job.companyId()}">ID</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-file-text"></i> Description</h5>
+                <div>
+                    <span id="desc-status" class="small me-2 d-none"></span>
+                    <button th:if="${job.website()} and (${job.description()} == 'No description available' or ${#strings.isEmpty(job.description())})"
+                            id="fetch-desc-btn"
+                            class="btn btn-sm btn-outline-linkedin"
+                            th:data-job-id="${job.id()}"
+                            th:data-url="${job.website()}">
+                        <i class="bi bi-linkedin"></i> Fetch from LinkedIn
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <pre class="mb-0 text-wrap" style="white-space: pre-wrap; font-family: inherit;" th:text="${job.description()}">Description</pre>
+            </div>
+        </div>
+
+        <!-- Hidden trigger area for extension -->
+        <div id="cvsearch-trigger-area" class="d-none"></div>
+
+        <div class="card shadow-sm mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Generate</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Generate a tailored CV or cover letter based on your profile and this job description.
+                </p>
+                <div class="d-flex gap-2">
+                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv.pdf?userId=1'}"
+                       class="btn btn-primary" target="_blank">
+                        <i class="bi bi-file-pdf"></i> Download CV PDF
+                    </a>
+                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv-prompt?userId=1'}"
+                       class="btn btn-outline-primary" target="_blank">
+                        <i class="bi bi-chat-dots"></i> View CV Prompt
+                    </a>
+                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cover-letter-prompt?userId=1'}"
+                       class="btn btn-outline-secondary" target="_blank">
+                        <i class="bi bi-envelope"></i> Cover Letter Prompt
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

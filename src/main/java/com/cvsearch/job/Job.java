@@ -45,6 +45,9 @@ public class Job {
 	@Column(length = 100)
 	private String employmentType;
 
+	@Column(length = 2048)
+	private String website;
+
 	public Job() {
 	}
 
@@ -144,5 +147,13 @@ public class Job {
 
 	public void setEmploymentType(String employmentType) {
 		this.employmentType = employmentType;
+	}
+
+	public String getWebsite() {
+		return this.website;
+	}
+
+	public void setWebsite(String website) {
+		this.website = website;
 	}
 }

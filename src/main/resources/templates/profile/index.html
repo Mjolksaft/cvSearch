@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Search — Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-briefcase-fill"></i> CV Search
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/jobs"><i class="bi bi-list-ul"></i> Jobs</a>
+                <a class="nav-link active" href="/profile"><i class="bi bi-person-circle"></i> Profile</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-person-circle"></i> Your Profile</h4>
+            </div>
+            <div class="card-body">
+                <!-- Pass server data to JavaScript via Thymeleaf JavaScript inlining -->
+                <script th:inline="javascript">
+                    /*<![CDATA[*/
+                    window.__profileData = {
+                        userId:     /*[[${userId}]]*/ 1,
+                        apiUrl:     '/api/profile',
+                        summary:    /*[[${profile?.summary()}]]*/ null,
+                        skills:     /*[[${profile?.skills()}]]*/ null,
+                        projects:   /*[[${profile?.projects()}]]*/ null,
+                        education:  /*[[${profile?.education()}]]*/ null,
+                        languages:  /*[[${profile?.languages()}]]*/ null,
+                        certs:      /*[[${profile?.certifications()}]]*/ null
+                    };
+                </script>
+
+                <div id="profile-form">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Summary</label>
+                        <textarea class="form-control" id="summary" rows="3"
+                                  placeholder="Brief personal introduction / profile summary">Your summary</textarea>
+                        <div class="form-text">A short paragraph about yourself.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Skills</label>
+                        <div class="tags-container" id="skills-container">
+                            <div class="tags-list" id="skills-list"></div>
+                            <div class="input-group input-group-sm mt-2">
+                                <input type="text" class="form-control tag-input" id="skill-input"
+                                       placeholder="Type a skill and press Enter..." />
+                                <button class="btn btn-outline-primary" type="button" id="add-skill-btn">
+                                    <i class="bi bi-plus-lg"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-text">Press Enter or click Add to add a skill. Click &times; to remove.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-semibold mb-0">Projects</label>
+                            <button class="btn btn-sm btn-outline-primary" type="button" id="add-project-btn">
+                                <i class="bi bi-plus-lg"></i> Add Project
+                            </button>
+                        </div>
+                        <div id="projects-container"></div>
+                        <div class="form-text">Add your key projects. Technologies should be comma-separated.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-semibold mb-0">Education</label>
+                            <button class="btn btn-sm btn-outline-primary" type="button" id="add-edu-btn">
+                                <i class="bi bi-plus-lg"></i> Add Education
+                            </button>
+                        </div>
+                        <div id="education-container"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Languages</label>
+                        <div class="tags-container" id="languages-container">
+                            <div class="tags-list" id="languages-list"></div>
+                            <div class="input-group input-group-sm mt-2">
+                                <input type="text" class="form-control tag-input" id="language-input"
+                                       placeholder='e.g. "English (fluent)" — press Enter...' />
+                                <button class="btn btn-outline-primary" type="button" id="add-language-btn">
+                                    <i class="bi bi-plus-lg"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-text">Press Enter or click Add. Format: Language (proficiency).</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Certifications</label>
+                        <textarea class="form-control" id="certifications" rows="2"
+                                  placeholder='["AWS Certified", "Scrum Master"]'></textarea>
+                        <div class="form-text">JSON array, e.g. <code>["AWS Certified", "Scrum Master"]</code></div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" id="save-profile-btn">
+                            <i class="bi bi-check-lg"></i> Save Profile
+                        </button>
+                        <a href="/jobs" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Jobs
+                        </a>
+                    </div>
+
+                    <div id="save-status" class="mt-3" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

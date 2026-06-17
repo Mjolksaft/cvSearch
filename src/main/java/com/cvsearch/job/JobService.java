@@ -9,6 +9,10 @@ import org.springframework.validation.annotation.Validated;
 
 import com.cvsearch.company.Company;
 import com.cvsearch.company.CompanyRepository;
+import java.util.List;
+import java.util.Optional;
+
+import com.cvsearch.job.dto.BulkJobItem;
 import com.cvsearch.job.dto.JobPatchRequest;
 import com.cvsearch.job.dto.JobRequest;
 import com.cvsearch.job.dto.JobResponse;
@@ -87,5 +91,42 @@ public class JobService {
 			Pageable pageable) {
 		Page<Job> jobs = repository.searchJobs(company, title, status, location, saved, appliedBefore, appliedAfter, pageable);
 		return jobs.map(jobMapper::toResponse);
+	}
+
+	public JobResponse updateDescriptionByExternalId(Long externalId, String description) {
+		Job job = repository.findByExternalId(externalId)
+				.orElseThrow(() -> new JobNotFoundException("Job not found with externalId: " + externalId));
+		job.setDescription(description != null && !description.isBlank() ? description : "No description available");
+		job = repository.save(job);
+		return jobMapper.toResponse(job);
+	}
+
+	public List<JobResponse> bulkCreate(List<BulkJobItem> items) {
+		return items.stream().map(item -> {
+			// Skip if already exists by external ID
+			if (item.externalId() != null) {
+				Optional<Job> existing = repository.findByExternalId(item.externalId());
+				if (existing.isPresent()) {
+					return jobMapper.toResponse(existing.get());
+				}
+			}
+
+			Company company = companyRepository.findByName(item.companyName())
+					.orElseGet(() -> companyRepository.save(
+							new Company(item.companyName(), null, null, null)));
+
+			Job job = new Job(
+					item.title(),
+					company,
+					item.description() != null && !item.description().isBlank() ? item.description() : "No description available",
+					"Fetched",
+					item.location(),
+					null,
+					LocalDate.now());
+			job.setWebsite(item.website());
+			job.setExternalId(item.externalId());
+			job = repository.save(job);
+			return jobMapper.toResponse(job);
+		}).toList();
 	}
 }

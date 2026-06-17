@@ -17,29 +17,17 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     List<Job> findByTitleContainingIgnoreCase(String title);
     Optional<Job> findByExternalId(Long externalId);
 
-    @Query(value = """
-            SELECT j.* FROM job j
-            LEFT JOIN company c ON j.company_id = c.id
-            WHERE (:company IS NULL OR c.name ILIKE CONCAT('%', :company, '%'))
-            AND (:title IS NULL OR j.title ILIKE CONCAT('%', :title, '%'))
+    @Query("""
+            SELECT j FROM Job j
+            LEFT JOIN j.company c
+            WHERE (:company IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :company, '%')))
+            AND (:title IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :title, '%')))
             AND (:status IS NULL OR j.status = :status)
-            AND (:location IS NULL OR j.location ILIKE CONCAT('%', :location, '%'))
+            AND (:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
             AND (:saved IS NULL OR j.saved = :saved)
-            AND (:appliedBefore IS NULL OR j.applied_date <= :appliedBefore)
-            AND (:appliedAfter IS NULL OR j.applied_date >= :appliedAfter)
-            """,
-            countQuery = """
-            SELECT count(j.*) FROM job j
-            LEFT JOIN company c ON j.company_id = c.id
-            WHERE (:company IS NULL OR c.name ILIKE CONCAT('%', :company, '%'))
-            AND (:title IS NULL OR j.title ILIKE CONCAT('%', :title, '%'))
-            AND (:status IS NULL OR j.status = :status)
-            AND (:location IS NULL OR j.location ILIKE CONCAT('%', :location, '%'))
-            AND (:saved IS NULL OR j.saved = :saved)
-            AND (:appliedBefore IS NULL OR j.applied_date <= :appliedBefore)
-            AND (:appliedAfter IS NULL OR j.applied_date >= :appliedAfter)
-            """,
-            nativeQuery = true)
+            AND (:appliedBefore IS NULL OR j.appliedDate <= :appliedBefore)
+            AND (:appliedAfter IS NULL OR j.appliedDate >= :appliedAfter)
+            """)
     Page<Job> searchJobs(@Param("company") String company,
                          @Param("title") String title,
                          @Param("status") String status,

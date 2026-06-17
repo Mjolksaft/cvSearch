@@ -1,6 +1,7 @@
 package com.cvsearch.job;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.cvsearch.job.dto.BulkJobItem;
+import com.cvsearch.job.dto.DescriptionUpdateRequest;
 import com.cvsearch.job.dto.JobPatchRequest;
 import com.cvsearch.job.dto.JobRequest;
 import com.cvsearch.job.dto.JobResponse;
@@ -24,7 +27,8 @@ public class JobController {
 	private JobService service;
 	private JobFetcherService fetcherService;
 
-	public JobController(JobService service, JobFetcherService fetcherService) {
+	public JobController(JobService service,
+						 JobFetcherService fetcherService) {
 		this.service = service;
 		this.fetcherService = fetcherService;
 	}
@@ -78,9 +82,24 @@ public class JobController {
 		return ResponseEntity.ok(updatedJob);
 	}
 
+	@PostMapping("/bulk")
+	public ResponseEntity<List<JobResponse>> bulkCreate(@RequestBody @Valid List<BulkJobItem> items) {
+		List<JobResponse> created = service.bulkCreate(items);
+		return ResponseEntity.ok(created);
+	}
+
+	@PatchMapping("/external/{externalId}")
+	public ResponseEntity<JobResponse> updateDescriptionByExternalId(
+			@PathVariable Long externalId,
+			@RequestBody DescriptionUpdateRequest request) {
+		JobResponse updated = service.updateDescriptionByExternalId(externalId, request.description());
+		return ResponseEntity.ok(updated);
+	}
+
 	@GetMapping("/fetch")
 	public ResponseEntity<SearchResponse> fetchJobs(@RequestParam(defaultValue = "java") String q) {
 		SearchResponse response = fetcherService.searchJobs(q);
 		return ResponseEntity.ok(response);
 	};
+
 }

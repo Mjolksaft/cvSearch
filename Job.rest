@@ -27,7 +27,8 @@ Content-Type: application/json
 }
 
 ##################################
-GET http://localhost:8080/api/jobs
+GET http://localhost:8080/api/jobs?page=2&size=20
+
 
 #############################
 PATCH http://localhost:8080/api/jobs/3
@@ -41,3 +42,23 @@ Content-Type: application/json
 # GET /api/jobs?location=stockholm&employmentType=Full-time
 # GET /api/jobs?appliedAfter=2026-01-01&appliedBefore=2026-06-01
 # GET /api/jobs?company=google&saved=true&location=stockholm
+
+### Bulk import (used by Chrome extension)
+POST http://localhost:8080/api/jobs/bulk
+Content-Type: application/json
+
+[{
+  "title": "Java Developer",
+  "company": "Spotify",
+  "location": "Stockholm",
+  "externalId": 1234567890,
+  "website": "https://www.linkedin.com/jobs/view/1234567890"
+}]
+
+### Update description by external ID (used by Chrome extension)
+PATCH http://localhost:8080/api/jobs/external/1234567890
+Content-Type: application/json
+
+{
+  "description": "Full job description text here..."
+}

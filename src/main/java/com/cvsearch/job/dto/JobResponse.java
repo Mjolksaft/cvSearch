@@ -14,5 +14,8 @@ public record JobResponse(
 		@NotNull String status,
 		@NotNull LocalDate appliedDate,
 		@NotNull Boolean saved,
-		String employmentType) {
+		String employmentType,
+		String location,
+		LocalDate deadline,
+		String website) {
 }

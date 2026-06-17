@@ -9,5 +9,6 @@ public record JobPatchRequest(
         String status,
         LocalDate appliedDate,
         Boolean saved,
-        String employmentType) {
+        String employmentType,
+        String website) {
 }

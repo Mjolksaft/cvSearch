@@ -219,6 +219,7 @@ public class JobFetcherService {
                 java.time.LocalDate.now());
         job.setExternalId(externalId);
         job.setEmploymentType(employmentType);
+        job.setWebsite(hit.webpage_url());
         jobRepository.save(job);
     }
 

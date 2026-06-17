@@ -11,5 +11,6 @@ public record JobRequest(
 		@NotBlank String description,
 		@NotBlank String status,
 		@NotNull LocalDate appliedDate,
-		String employmentType) {
+		String employmentType,
+		String website) {
 }
