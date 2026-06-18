@@ -1,7 +1,5 @@
 package com.cvsearch.userProfile;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 
 import com.cvsearch.user.User;
@@ -48,12 +46,4 @@ public class UserProfileService {
         return profileMapper.toResponse(saved);
     }
 
-    public List<UserProfile> getAll() {
-        return repository.findAll();
-    }
-
-    public UserProfile getById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found with id: " + id));
-    }
 }

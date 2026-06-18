@@ -48,7 +48,7 @@ class JobServiceUnitTest {
 
     private final Company company = new Company("Google", "https://www.google.com/", "Kristianstad", null);
     private final Job job = new Job("SWE", company, "Build stuff", "Applied", null, null, LocalDate.of(2026, 6, 1));
-    private final JobResponse response = new JobResponse(1L, "SWE", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null, null, null, null);
+    private final JobResponse response = new JobResponse(1L, "SWE", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null, null, null, null, null);
 
     @Test
     void getAllJobs_ShouldReturnPage() {
@@ -161,7 +161,7 @@ class JobServiceUnitTest {
         when(repository.findById(1L)).thenReturn(Optional.of(job));
         doNothing().when(jobMapper).applyPartialUpdate(patch, job);
         when(repository.save(job)).thenReturn(job);
-        when(jobMapper.toResponse(job)).thenReturn(new JobResponse(1L, "Updated Title", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null, null, null, null));
+        when(jobMapper.toResponse(job)).thenReturn(new JobResponse(1L, "Updated Title", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null, null, null, null, null));
 
         JobResponse result = jobService.partialUpdateJobById(1L, patch);
 
@@ -218,14 +218,14 @@ class JobServiceUnitTest {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Job> jobPage = new PageImpl<>(List.of(job), pageable, 1);
 
-        when(repository.searchJobs(companyName, title, status, null, null, null, null, pageable)).thenReturn(jobPage);
+        when(repository.searchJobs("%google%", "%swe%", status, null, null, null, null, pageable)).thenReturn(jobPage);
         when(jobMapper.toResponse(job)).thenReturn(response);
 
         Page<JobResponse> result = jobService.search(companyName, title, status, null, null, null, null, pageable);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).companyName()).isEqualTo("Google");
-        verify(repository).searchJobs(companyName, title, status, null, null, null, null, pageable);
+        verify(repository).searchJobs("%google%", "%swe%", status, null, null, null, null, pageable);
     }
 
     @Test

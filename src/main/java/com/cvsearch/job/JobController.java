@@ -100,6 +100,6 @@ public class JobController {
 	public ResponseEntity<SearchResponse> fetchJobs(@RequestParam(defaultValue = "java") String q) {
 		SearchResponse response = fetcherService.searchJobs(q);
 		return ResponseEntity.ok(response);
-	};
+	}
 
 }

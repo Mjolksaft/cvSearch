@@ -1,7 +1,5 @@
 package com.cvsearch.userProfile;
 
-import java.util.List;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -22,6 +20,4 @@ public interface ProfileMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
     void applyUpdate(ProfileRequest request, @MappingTarget UserProfile profile);
-
-    List<ProfileResponse> toResponseList(List<UserProfile> profiles);
 }

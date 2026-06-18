@@ -39,8 +39,7 @@ public class Job {
 	private LocalDate deadline;
 	@NotNull
 	private LocalDate appliedDate;
-	@NotNull
-	private boolean saved = false;
+	private Boolean saved = false;
 
 	@Column(length = 100)
 	private String employmentType;

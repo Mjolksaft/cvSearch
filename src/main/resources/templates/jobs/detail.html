@@ -81,8 +81,16 @@
             <div class="col-md-3">
                 <div class="card shadow-sm text-center">
                     <div class="card-body">
-                        <div class="text-muted small">Employment Type</div>
-                        <div class="fw-medium mt-1" th:text="${job.employmentType()} ?: 'N/A'">Type</div>
+                        <div class="text-muted small">Source</div>
+                        <div class="fw-medium mt-1">
+                            <i th:if="${job.website() != null and #strings.containsIgnoreCase(job.website(), 'linkedin.com')}"
+                               class="bi bi-linkedin me-1" style="color: #0a66c2;"></i>
+                            <img th:if="${job.externalId() != null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"
+                                 src="/images/arbetsformedlingen.png" style="width: 16px; height: 16px;" class="me-1">
+                            <i th:if="${job.externalId() == null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"
+                               class="bi bi-globe2 me-1 text-secondary"></i>
+                            <span th:text="${job.website() != null and #strings.containsIgnoreCase(job.website(), 'linkedin.com') ? 'LinkedIn' : job.externalId() != null ? 'Arbetsförmedlingen' : 'Other'}">Other</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -96,13 +104,12 @@
             </div>
         </div>
 
-        <!-- Description -->
         <div class="card shadow-sm mt-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-file-text"></i> Description</h5>
                 <div>
                     <span id="desc-status" class="small me-2 d-none"></span>
-                    <button th:if="${job.website()} and (${job.description()} == 'No description available' or ${#strings.isEmpty(job.description())})"
+                    <button th:if="${job.website() != null and (job.description() == 'No description available' or #strings.isEmpty(job.description()))}"
                             id="fetch-desc-btn"
                             class="btn btn-sm btn-outline-linkedin"
                             th:data-job-id="${job.id()}"
@@ -116,29 +123,35 @@
             </div>
         </div>
 
-        <!-- Hidden trigger area for extension -->
         <div id="cvsearch-trigger-area" class="d-none"></div>
 
         <div class="card shadow-sm mt-3">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-lightning"></i> Generate</h5>
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Generate with AI</h5>
             </div>
             <div class="card-body">
                 <p class="text-muted small mb-3">
-                    Generate a tailored CV or cover letter based on your profile and this job description.
+                    Generate a tailored CV or cover letter using AI (Ollama). First load can be slow.
                 </p>
                 <div class="d-flex gap-2">
-                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv.pdf?userId=1'}"
+                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv/ai?userId=1'}"
                        class="btn btn-primary" target="_blank">
-                        <i class="bi bi-file-pdf"></i> Download CV PDF
+                        <i class="bi bi-file-pdf"></i> Generate Tailored CV
+                    </a>
+                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cover-letter/ai?userId=1'}"
+                       class="btn btn-outline-secondary" target="_blank">
+                        <i class="bi bi-envelope"></i> Generate Cover Letter
+                    </a>
+                </div>
+                <hr class="my-3">
+                <div class="d-flex gap-2">
+                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv.pdf?userId=1'}"
+                       class="btn btn-outline-primary btn-sm" target="_blank">
+                        <i class="bi bi-file-pdf"></i> Raw CV PDF (no AI)
                     </a>
                     <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv-prompt?userId=1'}"
-                       class="btn btn-outline-primary" target="_blank">
-                        <i class="bi bi-chat-dots"></i> View CV Prompt
-                    </a>
-                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cover-letter-prompt?userId=1'}"
-                       class="btn btn-outline-secondary" target="_blank">
-                        <i class="bi bi-envelope"></i> Cover Letter Prompt
+                       class="btn btn-outline-secondary btn-sm" target="_blank">
+                        <i class="bi bi-chat-dots"></i> View Prompt
                     </a>
                 </div>
             </div>

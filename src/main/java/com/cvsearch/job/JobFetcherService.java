@@ -30,7 +30,6 @@ public class JobFetcherService {
         this.companyRepository = companyRepository;
     }
 
-    // --- Raw API DTOs matching the actual JSON structure ---
     private record ApiSearchResponse(ApiTotal total, List<ApiHit> hits) {
         private record ApiTotal(int value) {}
     }
@@ -157,7 +156,7 @@ public class JobFetcherService {
     private void saveJobToDatabase(ApiHit hit) {
         Long externalId = parseLong(hit.id());
         if (externalId == null) {
-            return; // skip if no valid ID
+            return;
         }
 
         if (jobRepository.findByExternalId(externalId).isPresent()) {

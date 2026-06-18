@@ -62,3 +62,15 @@ Content-Type: application/json
 {
   "description": "Full job description text here..."
 }
+
+
+################
+GET http://localhost:8080/api/jobs?saved=true
+
+##############################
+POST http://localhost:8080/api/ai/chat 
+Content-Type: application/json
+
+{
+  "prompt": "poopy scoopy"
+}

@@ -64,11 +64,9 @@ public class Company {
 
     public void setWebsite(String newWebsite) {
         this.website = newWebsite;
-        
     }
 
     public void setLocation(String newLocation) {
         this.location = newLocation;
-
     }
 }

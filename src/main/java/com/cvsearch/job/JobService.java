@@ -89,7 +89,10 @@ public class JobService {
 	public Page<JobResponse> search(String company, String title, String status,
 			String location, Boolean saved, LocalDate appliedBefore, LocalDate appliedAfter,
 			Pageable pageable) {
-		Page<Job> jobs = repository.searchJobs(company, title, status, location, saved, appliedBefore, appliedAfter, pageable);
+		String likeCompany = company != null ? "%" + company.toLowerCase() + "%" : null;
+		String likeTitle = title != null ? "%" + title.toLowerCase() + "%" : null;
+		String likeLocation = location != null ? "%" + location.toLowerCase() + "%" : null;
+		Page<Job> jobs = repository.searchJobs(likeCompany, likeTitle, status, likeLocation, saved, appliedBefore, appliedAfter, pageable);
 		return jobs.map(jobMapper::toResponse);
 	}
 
@@ -103,7 +106,6 @@ public class JobService {
 
 	public List<JobResponse> bulkCreate(List<BulkJobItem> items) {
 		return items.stream().map(item -> {
-			// Skip if already exists by external ID
 			if (item.externalId() != null) {
 				Optional<Job> existing = repository.findByExternalId(item.externalId());
 				if (existing.isPresent()) {

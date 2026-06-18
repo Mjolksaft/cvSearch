@@ -88,20 +88,17 @@
 </head>
 <body>
 
-    <!-- Header -->
     <h1 th:text="${name}">Your Name</h1>
     <div class="subtitle" th:if="${jobTitle}">
         CV tailored for: <strong><span th:text="${jobTitle}">Job Title</span></strong>
         at <span th:text="${companyName}">Company</span>
     </div>
 
-    <!-- Summary -->
     <div th:if="${summary != null and !summary.isEmpty()}">
         <div class="section-title">Summary</div>
         <div class="summary" th:text="${summary}">Summary text</div>
     </div>
 
-    <!-- Skills -->
     <div th:if="${skills != null and !skills.isEmpty()}">
         <div class="section-title">Skills</div>
         <div>
@@ -109,7 +106,6 @@
         </div>
     </div>
 
-    <!-- Projects -->
     <div th:if="${projects != null and !projects.isEmpty()}">
         <div class="section-title">Projects</div>
         <div th:each="project : ${projects}">
@@ -124,7 +120,6 @@
         </div>
     </div>
 
-    <!-- Education -->
     <div th:if="${education != null and !education.isEmpty()}">
         <div class="section-title">Education</div>
         <div th:each="edu : ${education}" class="education-item">
@@ -136,7 +131,6 @@
         </div>
     </div>
 
-    <!-- Languages -->
     <div th:if="${languages != null and !languages.isEmpty()}">
         <div class="section-title">Languages</div>
         <div>
@@ -144,7 +138,6 @@
         </div>
     </div>
 
-    <!-- Certifications -->
     <div th:if="${certifications != null and !certifications.isEmpty()}">
         <div class="section-title">Certifications</div>
         <div>

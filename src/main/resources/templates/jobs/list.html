@@ -89,7 +89,7 @@
                             <th>Company</th>
                             <th>Location</th>
                             <th>Status</th>
-                            <th>Type</th>
+                            <th><i class="bi bi-link-45deg" title="Source"></i></th>
                             <th>Applied</th>
                             <th style="width: 50px;"></th>
                             <th style="width: 70px;"></th>
@@ -115,7 +115,14 @@
                                                        job.status() == 'Offer' ? 'bg-success' : 'bg-secondary'}"
                                       th:text="${job.status()}">Status</span>
                             </td>
-                            <td th:text="${job.employmentType()} ?: '-'">Type</td>
+                            <td class="text-center">
+                                <i th:if="${job.website() != null and #strings.containsIgnoreCase(job.website(), 'linkedin.com')}"
+                                   class="bi bi-linkedin" style="color: #0a66c2;" title="LinkedIn"></i>
+                                <img th:if="${job.externalId() != null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"
+                                     src="/images/arbetsformedlingen.png" style="width: 16px; height: 16px;" title="Arbetsförmedlingen">
+                                <i th:if="${job.externalId() == null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"
+                                   class="bi bi-globe2 text-secondary" title="Other"></i>
+                            </td>
                             <td th:text="${#temporals.format(job.appliedDate(), 'yyyy-MM-dd')}">Date</td>
                             <td>
                                 <button class="btn btn-sm bookmark-btn"

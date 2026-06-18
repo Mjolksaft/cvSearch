@@ -1,7 +1,5 @@
 package com.cvsearch.job;
 
-import java.util.List;
-
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,13 +15,12 @@ public interface JobMapper {
 
     @Mapping(target = "companyId", source = "company.id")
     @Mapping(target = "companyName", source = "company.name")
+    @Mapping(target = "externalId", source = "externalId")
     JobResponse toResponse(Job job);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "company", ignore = true)
     Job toEntity(JobRequest request);
-
-    List<JobResponse> toResponseList(List<Job> jobs);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)

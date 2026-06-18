@@ -20,10 +20,10 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     @Query("""
             SELECT j FROM Job j
             LEFT JOIN j.company c
-            WHERE (:company IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :company, '%')))
-            AND (:title IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :title, '%')))
+            WHERE (:company IS NULL OR LOWER(c.name) LIKE :company)
+            AND (:title IS NULL OR LOWER(j.title) LIKE :title)
             AND (:status IS NULL OR j.status = :status)
-            AND (:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
+            AND (:location IS NULL OR LOWER(j.location) LIKE :location)
             AND (:saved IS NULL OR j.saved = :saved)
             AND (:appliedBefore IS NULL OR j.appliedDate <= :appliedBefore)
             AND (:appliedAfter IS NULL OR j.appliedDate >= :appliedAfter)

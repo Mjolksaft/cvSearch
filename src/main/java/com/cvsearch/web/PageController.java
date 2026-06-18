@@ -39,7 +39,7 @@ public class PageController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String location,
-            @RequestParam(required = false) String savedParam,
+            @RequestParam(required = false) String saved,
             @RequestParam(required = false) String appliedBefore,
             @RequestParam(required = false) String appliedAfter,
             @RequestParam(defaultValue = "0") int page,
@@ -53,9 +53,9 @@ public class PageController {
         if (status != null && status.isBlank()) status = null;
         if (location != null && location.isBlank()) location = null;
 
-        Boolean saved = null;
-        if (savedParam != null && !savedParam.isBlank()) {
-            saved = Boolean.parseBoolean(savedParam);
+        Boolean savedBool = null;
+        if (saved != null && !saved.isBlank()) {
+            savedBool = Boolean.parseBoolean(saved);
         }
 
         Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
@@ -67,9 +67,9 @@ public class PageController {
         Page<JobResponse> jobPage;
 
         if (company != null || title != null || status != null
-                || location != null || saved != null
+                || location != null || savedBool != null
                 || beforeDate != null || afterDate != null) {
-            jobPage = jobService.search(company, title, status, location, saved, beforeDate, afterDate, pageable);
+            jobPage = jobService.search(company, title, status, location, savedBool, beforeDate, afterDate, pageable);
         } else {
             jobPage = jobService.GetAllJobs(pageable);
         }
@@ -84,7 +84,7 @@ public class PageController {
         model.addAttribute("filterTitle", title);
         model.addAttribute("filterStatus", status);
         model.addAttribute("filterLocation", location);
-        model.addAttribute("filterSaved", saved);
+        model.addAttribute("filterSaved", savedBool);
 
         return "jobs/list";
     }
@@ -102,7 +102,6 @@ public class PageController {
             ProfileResponse profile = profileService.getByUserId(1L);
             model.addAttribute("profile", profile);
         } catch (Exception e) {
-            // No profile yet
         }
         model.addAttribute("userId", 1L);
         return "profile/index";

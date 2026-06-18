@@ -40,27 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ======== LinkedIn Extension Integration ========
-    // Helper: inject a trigger element for the extension to find
-    function injectTrigger(attrs) {
-        var area = document.getElementById('cvsearch-trigger-area');
-        if (!area) {
-            area = document.createElement('div');
-            area.id = 'cvsearch-trigger-area';
-            area.className = 'd-none';
-            document.body.appendChild(area);
-        }
-        var div = document.createElement('div');
-        div.id = 'cvsearch-command';
-        for (var key in attrs) {
-            if (attrs.hasOwnProperty(key)) {
-                div.setAttribute('data-' + key, attrs[key]);
-            }
-        }
-        area.appendChild(div);
-    }
-
-    // Fetch description button on job detail page
     var fetchDescBtn = document.getElementById('fetch-desc-btn');
     if (fetchDescBtn) {
         fetchDescBtn.addEventListener('click', function () {
@@ -77,37 +56,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 statusEl.classList.remove('d-none');
             }
 
-            injectTrigger({
-                action: 'description',
-                'job-id': jobId,
+            window.postMessage({
+                type: "GET_LINKEDIN_DESC",
+                jobId: jobId,
                 url: url
-            });
+            }, "*");
         });
+
+        fetchDescBtn.click();
     }
 
-    document.getElementById("fetch-desc-btn")
-        .addEventListener("click", fetchDescription);
-
-    function fetchDescription(event) {
-        const btn = event.currentTarget;
-
-        const jobId = btn.dataset.jobId;
-        const url = btn.dataset.url;
-
-        console.log("Job ID:", jobId);
-        console.log("URL:", url);
-
-        window.postMessage({
-            type: "GET_LINKEDIN_DESC",
-            jobId: jobId,
-            url: url
-        }, "*");
-    }
-
-    // Auto-reload when description has been fetched
     window.addEventListener("message", function (event) {
         if (event.data?.type === "GET_LINKEDIN_DESC_DONE") {
-            console.log("Description fetched, reloading...");
             setTimeout(function () { window.location.reload(); }, 500);
         }
     });
