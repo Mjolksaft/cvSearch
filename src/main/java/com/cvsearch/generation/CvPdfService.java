@@ -19,6 +19,8 @@ import com.cvsearch.generation.dto.TailoredProfileRequest;
 import com.cvsearch.generation.dto.TailoredProfileRequest.EducationEntry;
 import com.cvsearch.generation.dto.TailoredProfileRequest.ProjectEntry;
 
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -48,10 +50,10 @@ public class CvPdfService {
     private final ObjectMapper objectMapper;
 
     public CvPdfService(JobRepository jobRepository,
-                        UserProfileRepository profileRepository,
-                        UserRepository userRepository,
-                        TemplateEngine templateEngine,
-                        ObjectMapper objectMapper) {
+            UserProfileRepository profileRepository,
+            UserRepository userRepository,
+            TemplateEngine templateEngine,
+            ObjectMapper objectMapper) {
         this.jobRepository = jobRepository;
         this.profileRepository = profileRepository;
         this.userRepository = userRepository;
@@ -75,24 +77,31 @@ public class CvPdfService {
 
         String email = user.getEmail() != null ? user.getEmail() : "";
         String jobLocation = job.getLocation() != null ? job.getLocation() : "";
+        String phone = profile.getPhone() != null ? profile.getPhone() : "";
+        String github = profile.getGithub() != null ? profile.getGithub() : "";
+        String linkedin = profile.getLinkedin() != null ? profile.getLinkedin() : "";
+        String city = profile.getCity() != null ? profile.getCity() : "";
+        String country = profile.getCountry() != null ? profile.getCountry() : "";
 
         Context context = buildBaseContext(
                 user.getName(), job.getTitle(),
                 job.getCompany() != null ? job.getCompany().getName() : "",
                 safe(profile.getSummary()),
                 skills, projects, education, languages, certifications,
-                email, jobLocation);
+                email, jobLocation, phone, github, linkedin, city, country);
 
         return generatePdf(context, template);
     }
 
     public byte[] generateTailoredCvPdf(Long jobId, Long userId,
-                                         TailoredProfileRequest tailored,
-                                         String template) {
+            TailoredProfileRequest tailored,
+            String template) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new EntityNotFoundException("Job not found with id: " + jobId));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found for user id: " + userId));
 
         List<Map<String, Object>> projectMaps = new ArrayList<>();
         if (tailored.projects() != null) {
@@ -119,6 +128,11 @@ public class CvPdfService {
 
         String email = user.getEmail() != null ? user.getEmail() : "";
         String jobLocation = job.getLocation() != null ? job.getLocation() : "";
+        String phone = profile.getPhone() != null ? profile.getPhone() : "";
+        String github = profile.getGithub() != null ? profile.getGithub() : "";
+        String linkedin = profile.getLinkedin() != null ? profile.getLinkedin() : "";
+        String city = profile.getCity() != null ? profile.getCity() : "";
+        String country = profile.getCountry() != null ? profile.getCountry() : "";
 
         Context context = buildBaseContext(
                 user.getName(), job.getTitle(),
@@ -129,19 +143,29 @@ public class CvPdfService {
                 eduMaps,
                 tailored.languages() != null ? tailored.languages() : List.of(),
                 tailored.certifications() != null ? tailored.certifications() : List.of(),
-                email, jobLocation);
+                email, jobLocation, phone, github, linkedin, city, country);
 
         return generatePdf(context, template);
     }
 
     private Context buildBaseContext(String name, String jobTitle, String companyName,
-                                      String summary, List<String> skills,
-                                      List<Map<String, Object>> projects,
-                                      List<Map<String, Object>> education,
-                                      List<String> languages, List<String> certifications,
-                                      String email, String jobLocation) {
+            String summary, List<String> skills,
+            List<Map<String, Object>> projects,
+            List<Map<String, Object>> education,
+            List<String> languages, List<String> certifications,
+            String email, String jobLocation,
+            String phone, String github, String linkedin,
+            String city, String country) {
         Context context = new Context();
         context.setVariable("name", safe(name));
+
+        // Split name into first/last for styled display
+        String n = safe(name);
+        String firstName = n.contains(" ") ? n.substring(0, n.indexOf(" ")) : n;
+        String lastName = n.contains(" ") ? n.substring(n.indexOf(" ") + 1) : "";
+        context.setVariable("firstName", firstName);
+        context.setVariable("lastName", lastName);
+
         context.setVariable("jobTitle", safe(jobTitle));
         context.setVariable("companyName", safe(companyName));
         context.setVariable("summary", safe(summary));
@@ -152,6 +176,11 @@ public class CvPdfService {
         context.setVariable("certifications", certifications != null ? certifications : List.of());
         context.setVariable("email", email);
         context.setVariable("jobLocation", jobLocation);
+        context.setVariable("phone", phone);
+        context.setVariable("github", github);
+        context.setVariable("linkedin", linkedin);
+        context.setVariable("city", city);
+        context.setVariable("country", country);
         return context;
     }
 
@@ -160,9 +189,6 @@ public class CvPdfService {
         String templateName = isSidebar ? "cv-template2" : "cv-template";
         if (isSidebar) {
             context.setVariable("profileImage", loadPhotoDataUri());
-            context.setVariable("phone", "");
-            context.setVariable("github", "");
-            context.setVariable("linkedin", "");
         }
         String html = templateEngine.process(templateName, context);
         return renderPdf(html);
@@ -193,8 +219,7 @@ public class CvPdfService {
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
                 // Clip to a circle
-                java.awt.geom.Ellipse2D.Double clip =
-                        new java.awt.geom.Ellipse2D.Double(0, 0, size, size);
+                java.awt.geom.Ellipse2D.Double clip = new java.awt.geom.Ellipse2D.Double(0, 0, size, size);
                 g2d.setClip(clip);
 
                 // Draw the original image centered and cropped square
@@ -218,10 +243,11 @@ public class CvPdfService {
 
     private byte[] renderPdf(String html) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            org.xhtmlrenderer.pdf.ITextRenderer renderer = new org.xhtmlrenderer.pdf.ITextRenderer();
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            renderer.createPDF(baos);
+            com.openhtmltopdf.pdfboxout.PdfRendererBuilder builder = new com.openhtmltopdf.pdfboxout.PdfRendererBuilder();
+            builder.withHtmlContent(html, null);
+            builder.useSVGDrawer(new BatikSVGDrawer());
+            builder.toStream(baos);
+            builder.run();
             return baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate PDF", e);
@@ -233,7 +259,8 @@ public class CvPdfService {
             return Collections.emptyList();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {
+            });
         } catch (Exception e) {
             log.warn("Failed to parse JSON list: {}", e.getMessage());
             return Collections.emptyList();
@@ -245,7 +272,8 @@ public class CvPdfService {
             return Collections.emptyList();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {});
+            return objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {
+            });
         } catch (Exception e) {
             log.warn("Failed to parse JSON list of maps: {}", e.getMessage());
             return Collections.emptyList();
@@ -257,13 +285,15 @@ public class CvPdfService {
     }
 
     private <T> List<T> limitList(List<T> list, int max) {
-        if (list == null || list.isEmpty()) return list;
+        if (list == null || list.isEmpty())
+            return list;
         return list.subList(0, Math.min(list.size(), max));
     }
 
     private List<Map<String, Object>> limitProjects(List<Map<String, Object>> projects,
-                                                     int maxProjects, int maxHighlights) {
-        if (projects == null || projects.isEmpty()) return projects;
+            int maxProjects, int maxHighlights) {
+        if (projects == null || projects.isEmpty())
+            return projects;
         List<Map<String, Object>> limited = projects.subList(0, Math.min(projects.size(), maxProjects));
         for (Map<String, Object> project : limited) {
             @SuppressWarnings("unchecked")

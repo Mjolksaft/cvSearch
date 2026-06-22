@@ -8,5 +8,10 @@ public record ProfileResponse(
         String education,
         String languages,
         String certifications,
+        String phone,
+        String github,
+        String linkedin,
+        String city,
+        String country,
         Long userId) {
 }

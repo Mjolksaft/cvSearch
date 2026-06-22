@@ -8,7 +8,7 @@ echo.
 echo [1/5] Creating user...
 curl -s -X POST http://localhost:8080/api/users ^
   -H "Content-Type: application/json" ^
-  -d "{\"name\": \"Your Name\", \"email\": \"you@email.com\", \"password\": \"pass123\", \"role\": \"USER\"}"
+  -d "{\"name\": \"David Kalla\", \"email\": \"Kalla01@hotmail.se\", \"password\": \"pass123\", \"role\": \"USER\"}"
 
 echo.
 echo.

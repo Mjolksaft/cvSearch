@@ -17,20 +17,26 @@ $projectsJson = $projectData.projects | ConvertTo-Json -Compress -Depth 10
 
 # Define the rest of your profile (edit these to match your info)
 $body = @{
-    summary = "Developer with strong foundations in systems programming, fullstack web development, and Android engineering."
-    skills  = '[ "Rust", "Kotlin", "Java", "Python", "React", "Node.js", "Spring Boot", "PostgreSQL", "MongoDB", "Docker", "Git", "REST APIs", "Clean Architecture", "JWT" ]'
+    summary = "Passionate fullstack developer with experience in Rust, Kotlin, Java, and modern web frameworks. Strong foundation in clean architecture, systems programming, API design, and Android development. Quick learner who thrives on building robust, maintainable solutions across the full stack."
+    skills  = '[ "Rust", "Kotlin", "Java", "Python", "React", "Node.js", "Spring Boot", "PostgreSQL", "MongoDB", "Docker", "Git", "REST APIs", "Clean Architecture", "JWT", "TypeScript", "Android" ]'
     projects = $projectsJson
-    education = '[ { "degree": "BSc Computer Science", "school": "University", "year": "2024" } ]'
+    education = '[ { "degree": "BSc Computer Science", "school": "Kristianstad University", "year": "2026" } ]'
     languages = '[ "Swedish (native)", "English (fluent)" ]'
     certifications = '[ ]'
+    phone = "+46 73 572 52 92"
+    github = "Mjolksaft"
+    linkedin = "david-kalla-0072133ab"
+    city = "Åhus"
+    country = "Sweden"
 } | ConvertTo-Json -Compress -Depth 10
 
 Write-Host "[2/5] Creating profile..." -ForegroundColor Cyan
 try {
+    $utf8Body = [System.Text.Encoding]::UTF8.GetBytes($body)
     $response = Invoke-RestMethod -Uri "$baseUrl/api/profile?userId=$userId" `
         -Method Put `
         -ContentType "application/json" `
-        -Body $body
+        -Body $utf8Body
 
     Write-Host "      ✔ Profile created with $($projectData.projects.Count) projects" -ForegroundColor Green
     $response | ConvertTo-Json -Depth 5

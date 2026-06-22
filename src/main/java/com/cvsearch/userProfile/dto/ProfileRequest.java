@@ -6,5 +6,10 @@ public record ProfileRequest(
         String skills,
         String education,
         String languages,
-        String certifications) {
+        String certifications,
+        String phone,
+        String github,
+        String linkedin,
+        String city,
+        String country) {
 }

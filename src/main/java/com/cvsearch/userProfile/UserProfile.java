@@ -34,6 +34,13 @@ public class UserProfile {
 
     @Column(columnDefinition = "TEXT")
     private String certifications;
+
+    private String phone;
+    private String github;
+    private String linkedin;
+    private String city;
+    private String country;
+
     @OneToOne
     @JoinColumn(name = "user_id") 
     @JsonIgnoreProperties({"profile"})
@@ -43,13 +50,18 @@ public class UserProfile {
 
     }
 
-    public UserProfile(String summary, String projects, String skills, String education, String languages, String certifications, User user) {
+    public UserProfile(String summary, String projects, String skills, String education, String languages, String certifications, String phone, String github, String linkedin, String city, String country, User user) {
         this.summary = summary;
         this.projects = projects;
         this.skills = skills;
         this.education = education;
         this.languages = languages;
         this.certifications = certifications;
+        this.phone = phone;
+        this.github = github;
+        this.linkedin = linkedin;
+        this.city = city;
+        this.country = country;
         this.user = user;
     }
 
@@ -106,6 +118,46 @@ public class UserProfile {
 
     public void setCertifications(String certifications) {
         this.certifications = certifications;
+    }
+
+    public String getPhone() {
+        return this.phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getGithub() {
+        return this.github;
+    }
+
+    public void setGithub(String github) {
+        this.github = github;
+    }
+
+    public String getLinkedin() {
+        return this.linkedin;
+    }
+
+    public void setLinkedin(String linkedin) {
+        this.linkedin = linkedin;
+    }
+
+    public String getCity() {
+        return this.city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCountry() {
+        return this.country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public User getUser() {
