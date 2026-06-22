@@ -1,5 +1,9 @@
 package com.cvsearch.generation;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -8,6 +12,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import com.cvsearch.generation.dto.TailoredProfileRequest;
 import com.cvsearch.generation.dto.TailoredProfileRequest.EducationEntry;
@@ -67,11 +73,15 @@ public class CvPdfService {
         List<String> languages = parseJsonList(profile.getLanguages());
         List<String> certifications = parseJsonList(profile.getCertifications());
 
+        String email = user.getEmail() != null ? user.getEmail() : "";
+        String jobLocation = job.getLocation() != null ? job.getLocation() : "";
+
         Context context = buildBaseContext(
                 user.getName(), job.getTitle(),
                 job.getCompany() != null ? job.getCompany().getName() : "",
                 safe(profile.getSummary()),
-                skills, projects, education, languages, certifications);
+                skills, projects, education, languages, certifications,
+                email, jobLocation);
 
         return generatePdf(context, template);
     }
@@ -107,6 +117,9 @@ public class CvPdfService {
             }
         }
 
+        String email = user.getEmail() != null ? user.getEmail() : "";
+        String jobLocation = job.getLocation() != null ? job.getLocation() : "";
+
         Context context = buildBaseContext(
                 user.getName(), job.getTitle(),
                 job.getCompany() != null ? job.getCompany().getName() : "",
@@ -115,7 +128,8 @@ public class CvPdfService {
                 projectMaps,
                 eduMaps,
                 tailored.languages() != null ? tailored.languages() : List.of(),
-                tailored.certifications() != null ? tailored.certifications() : List.of());
+                tailored.certifications() != null ? tailored.certifications() : List.of(),
+                email, jobLocation);
 
         return generatePdf(context, template);
     }
@@ -124,7 +138,8 @@ public class CvPdfService {
                                       String summary, List<String> skills,
                                       List<Map<String, Object>> projects,
                                       List<Map<String, Object>> education,
-                                      List<String> languages, List<String> certifications) {
+                                      List<String> languages, List<String> certifications,
+                                      String email, String jobLocation) {
         Context context = new Context();
         context.setVariable("name", safe(name));
         context.setVariable("jobTitle", safe(jobTitle));
@@ -135,6 +150,8 @@ public class CvPdfService {
         context.setVariable("education", education != null ? education : List.of());
         context.setVariable("languages", languages != null ? languages : List.of());
         context.setVariable("certifications", certifications != null ? certifications : List.of());
+        context.setVariable("email", email);
+        context.setVariable("jobLocation", jobLocation);
         return context;
     }
 
@@ -143,6 +160,9 @@ public class CvPdfService {
         String templateName = isSidebar ? "cv-template2" : "cv-template";
         if (isSidebar) {
             context.setVariable("profileImage", loadPhotoDataUri());
+            context.setVariable("phone", "");
+            context.setVariable("github", "");
+            context.setVariable("linkedin", "");
         }
         String html = templateEngine.process(templateName, context);
         return renderPdf(html);
@@ -155,8 +175,40 @@ public class CvPdfService {
                 log.warn("Photo not found at templates/images/Davidtiny.png");
                 return null;
             }
-            byte[] bytes = is.readAllBytes();
-            String base64 = Base64.getEncoder().encodeToString(bytes);
+
+            // Read the original image
+            BufferedImage original = ImageIO.read(is);
+            if (original == null) {
+                log.warn("Failed to decode photo");
+                return null;
+            }
+
+            int size = Math.min(original.getWidth(), original.getHeight());
+
+            // Create a square transparent canvas
+            BufferedImage circle = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = circle.createGraphics();
+            try {
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+                // Clip to a circle
+                java.awt.geom.Ellipse2D.Double clip =
+                        new java.awt.geom.Ellipse2D.Double(0, 0, size, size);
+                g2d.setClip(clip);
+
+                // Draw the original image centered and cropped square
+                int x = (original.getWidth() - size) / 2;
+                int y = (original.getHeight() - size) / 2;
+                g2d.drawImage(original, 0, 0, size, size, x, y, x + size, y + size, null);
+            } finally {
+                g2d.dispose();
+            }
+
+            // Encode the circular PNG to base64
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(circle, "png", baos);
+            String base64 = Base64.getEncoder().encodeToString(baos.toByteArray());
             return "data:image/png;base64," + base64;
         } catch (Exception e) {
             log.warn("Failed to load photo: {}", e.getMessage());
