@@ -144,15 +144,39 @@
                     </a>
                 </div>
                 <hr class="my-3">
-                <div class="d-flex gap-2">
-                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv.pdf?userId=1'}"
-                       class="btn btn-outline-primary btn-sm" target="_blank">
-                        <i class="bi bi-file-pdf"></i> Raw CV PDF (no AI)
-                    </a>
-                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv-prompt?userId=1'}"
-                       class="btn btn-outline-secondary btn-sm" target="_blank">
-                        <i class="bi bi-chat-dots"></i> View Prompt
-                    </a>
+                <div class="d-flex flex-wrap gap-3">
+                    <div>
+                        <div class="small fw-bold text-muted mb-1">Step 1: Requirements</div>
+                        <a th:href="@{'/api/jobs/' + ${job.id()} + '/extract-requirements-prompt'}"
+                           class="btn btn-outline-info btn-sm" target="_blank">
+                            <i class="bi bi-chat-dots"></i> View Prompt
+                        </a>
+                    </div>
+                    <div>
+                        <div class="small fw-bold text-muted mb-1">Step 2: Select Projects</div>
+                        <a th:href="@{'/api/jobs/' + ${job.id()} + '/select-projects-prompt?userId=1'}"
+                           class="btn btn-outline-info btn-sm" target="_blank">
+                            <i class="bi bi-chat-dots"></i> View Prompt
+                        </a>
+                    </div>
+                    <div>
+                        <div class="small fw-bold text-muted mb-1">Step 3-4: CV Generation</div>
+                        <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv/ai?userId=1'}"
+                           class="btn btn-primary btn-sm" target="_blank">
+                            <i class="bi bi-file-pdf"></i> Generate CV
+                        </a>
+                        <a th:href="@{'/api/jobs/' + ${job.id()} + '/cover-letter/ai?userId=1'}"
+                           class="btn btn-outline-secondary btn-sm" target="_blank">
+                            <i class="bi bi-envelope"></i> Cover Letter
+                        </a>
+                    </div>
+                    <div>
+                        <div class="small fw-bold text-muted mb-1">Raw PDF</div>
+                        <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv.pdf?userId=1'}"
+                           class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="bi bi-file-pdf"></i> Raw CV PDF
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

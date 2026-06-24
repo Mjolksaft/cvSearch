@@ -8,6 +8,7 @@ public record ProfileResponse(
         String education,
         String languages,
         String certifications,
+        String coursework,
         String phone,
         String github,
         String linkedin,

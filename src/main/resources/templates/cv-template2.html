@@ -6,6 +6,54 @@
     <title>CV - <span th:text="${name}">Name</span></title>
 
     <style>
+        /* ── Color Palette (change these to swap the whole theme) ── */
+        :root {
+            --sidebar-bg: #1B2A3B;
+            --sidebar-text: #EAEAEA;
+            --sidebar-text-muted: #CCC;
+            --accent: #C9A94E;
+            --accent-text: #1B2A3B;
+            --body-bg: #F2EEE4 ;
+            --main-text: #000;
+            --main-text-muted: #555;
+        }
+
+        /* ── Debug: visible section borders (browser-only; OpenHTMLtoPDF ignores @media) ── */
+        @media screen {
+            .dbg-section {
+                border: 1.5px dashed #aaa;
+                border-radius: 4px;
+                padding: 2px 4px;
+                margin: 2px 0;
+                position: relative;
+            }
+            .dbg-section::after {
+                content: attr(data-budget);
+                position: absolute;
+                top: -10px;
+                right: 4px;
+                font-size: 7.5pt;
+                color: #999;
+                background: #fff;
+                padding: 0 3px;
+                line-height: 1;
+            }
+            .dbg-sidebar {
+                border: 1.5px dashed #4a6a8a;
+                border-radius: 4px;
+                padding: 2px;
+            }
+            .dbg-label {
+                font-size: 7pt;
+                color: #888;
+                display: block;
+                border-top: 1px dotted #ccc;
+                margin-top: 4px;
+                padding-top: 2px;
+                text-align: right;
+            }
+        }
+
         /* ── Page ── */
         @page {
             size: A4;
@@ -19,12 +67,12 @@
         }
 
         body {
-            font-family: Calibri, Arial, Helvetica, sans-serif;
-            font-size: 10pt;
-            font-weight: 700;
-            line-height: 1.3;
+            font-family: 'Open Sans', Calibri, Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            font-weight: 400;
+            line-height: 1.5;
             color: #000;
-            background: #FBFBFB;
+            background: #F2EEE4;
         }
 
         /* ── Sidebar (fixed = full height) ── */
@@ -34,9 +82,9 @@
             left: 14px;
             width: 26%;
             height: 100%;
-            background: #EAEAEA;
+            background: #1B2A3B;
             padding: 22px 25px 22px 25px;
-            color: #000;
+            color: #EAEAEA;
             overflow: hidden;
         }
 
@@ -45,8 +93,8 @@
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 5px;
-            background: #A58A6F;
-            color: #fff;
+            background: #C9A94E;
+            color: #1B2A3B;
             padding: 5px 0;
             margin: 14px 0 7px 0;
             display: block;
@@ -58,12 +106,12 @@
         .sidebar .contact-item {
             font-size: 9.5pt;
             margin-bottom: 5px;
-            color: #333;
+            color: #CCC;
             line-height: 1.3;
         }
 
         .sidebar .contact-icon {
-            color: #A58A6F;
+            color: #C9A94E;
             width: 14px;
             display: inline-block;
             text-align: center;
@@ -74,22 +122,23 @@
         .sidebar .contact-icon svg {
             vertical-align: middle;
             margin-top: 3px;
+            fill: #C9A94E;
         }
 
         .sidebar .skill-tag {
             display: inline-block;
-            background: #A58A6F;
+            background: #C9A94E;
             padding: 2px 8px;
             margin: 2px 3px 2px 0;
             border-radius: 3px;
             font-size: 9pt;
-            color: #fff;
+            color: #1B2A3B;
         }
 
         .sidebar .language-item {
             font-size: 9.5pt;
             margin-bottom: 3px;
-            color: #333;
+            color: #CCC;
         }
 
         .sidebar-list {
@@ -100,7 +149,7 @@
         .sidebar-list li {
             font-size: 9pt;
             margin-bottom: 2.5px;
-            color: #333;
+            color: #CCC;
             line-height: 1.3;
         }
 
@@ -110,11 +159,11 @@
         }
 
         .sidebar .profile-image {
-            width: 130px;
-            height: 130px;
+            width: 180px;
+            height: 180px;
             object-fit: cover;
             border-radius: 50%;
-            border: 5px solid #A58A6F;
+            border: 10px solid #C9A94E;
             display: block;
             margin: 0 auto;
         }
@@ -129,25 +178,32 @@
             display: block;
             text-align: center;
             width: 100%;
-            font-size: 20pt;
+            font-family: 'Montserrat ExtraBold', Calibri, Arial, sans-serif;
+            font-size: 30pt;
             font-weight: 900;
             color: #000;
-            letter-spacing: 2.5px;
-            margin: 0 0 8px 0;
-            padding: 8px 0;
-            background: #FBFBFB;
+            letter-spacing: 6px;
+            margin: 0 0 2px 0;
+            padding: 8px 0 4px 0;
             text-transform: uppercase;
+            line-height: 1.1;
         }
 
         .main-name .accent {
-            color: #A58A6F;
+            color: #C9A94E;
         }
 
         .main-role {
-            font-size: 10.5pt;
+            display: block;
+            text-align: center;
+            width: 100%;
+            font-family: 'Montserrat Medium', Calibri, Arial, sans-serif;
+            font-size: 13px;
+            font-weight: 400;
             color: #555;
-            margin-bottom: 10px;
-            line-height: 1.3;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0 0 14px 0;
         }
 
         .main .section-title {
@@ -155,8 +211,8 @@
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 5px;
-            background: #A58A6F;
-            color: #fff;
+            background: #C9A94E;
+            color: #1B2A3B;
             padding: 5px 0;
             margin: 12px 0 7px 0;
             display: block;
@@ -166,21 +222,26 @@
         }
 
         .main .summary {
-            font-size: 10pt;
+            font-size: 9.5pt;
+            font-weight: 400;
+            line-height: 1.3;
             margin-bottom: 6px;
-            line-height: 1.35;
         }
 
         /* ── Projects ── */
         .project {
-            margin-bottom: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #C9A94E;
         }
 
         .project-name {
-            font-weight: bold;
+            font-weight: 700;
             font-size: 10.5pt;
             margin-bottom: 1px;
             color: #000;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
         }
 
         .project-tech {
@@ -190,7 +251,8 @@
         }
 
         .project-desc {
-            font-size: 10pt;
+            font-size: 9.5pt;
+            color: #555;
             margin-bottom: 1px;
             line-height: 1.3;
         }
@@ -204,6 +266,7 @@
             font-size: 9.5pt;
             margin-bottom: 1.5px;
             line-height: 1.3;
+            color: #555;
         }
 
         /* ── Education ── */
@@ -235,7 +298,7 @@
             <div class="section-title">Contact</div>
             <div class="contact-item" th:if="${email != null and !email.isEmpty()}">
                 <span class="contact-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#A58A6F" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555zM0 4.697v7.104l5.803-3.558L0 4.697zM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757zm3.436-.586L16 11.801V4.697l-5.803 3.546z"/>
                     </svg>
                 </span>
@@ -243,7 +306,7 @@
             </div>
             <div class="contact-item" th:if="${phone != null and !phone.isEmpty()}">
                 <span class="contact-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#A58A6F" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328z"/>
                     </svg>
                 </span>
@@ -251,7 +314,7 @@
             </div>
             <div class="contact-item" th:if="${github != null and !github.isEmpty()}">
                 <span class="contact-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#A58A6F" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
                     </svg>
                 </span>
@@ -259,7 +322,7 @@
             </div>
             <div class="contact-item" th:if="${linkedin != null and !linkedin.isEmpty()}">
                 <span class="contact-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#A58A6F" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/>
                     </svg>
                 </span>
@@ -267,7 +330,7 @@
             </div>
             <div class="contact-item" th:if="${city != null and !city.isEmpty() or country != null and !country.isEmpty()}">
                 <span class="contact-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="#A58A6F" viewBox="0 0 16 16">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
                     </svg>
                 </span>
@@ -314,14 +377,19 @@
         </div>
         <div class="main-role" th:if="${jobTitle}">
             <strong th:text="${jobTitle}">Software Developer</strong>
-            <span th:if="${companyName}"> — <span th:text="${companyName}">Spotify</span></span>
         </div>
 
-        <div th:if="${summary != null and !summary.isEmpty()}">
-            <div class="summary" th:text="${summary}">Motivated software developer with a strong foundation in full-stack development and a passion for building clean, maintainable applications. Experienced in Java, Spring Boot, and modern frontend frameworks, with hands-on project experience in REST API design, database modeling, and cloud deployment. Quick learner who thrives in collaborative environments and is excited to contribute to impactful software solutions.</div>
+        <!-- ── Summary: budget ~75pt (title 25pt + body ~50pt / 4 lines) ── -->
+        <div th:classappend="${debug} ? 'dbg-section' : ''" th:attr="data-budget=${debug} ? 'Summary: ~75pt / max 4 lines' : ''">
+            <div th:if="${summary != null and !summary.isEmpty()}">
+                <div class="summary" th:text="${summary}">Motivated software developer with a strong foundation in full-stack development and a passion for building clean, maintainable applications. Experienced in Java, Spring Boot, and modern frontend frameworks, with hands-on project experience in REST API design, database modeling, and cloud deployment. Quick learner who thrives in collaborative environments and is excited to contribute to impactful software solutions.</div>
+            </div>
+            <span class="dbg-label" th:if="${debug}" th:text="'Budget: 75pt / ~4 lines'"></span>
         </div>
 
-        <div th:if="${projects != null and !projects.isEmpty()}">
+        <!-- ── Projects: budget ~555pt (title 25pt + 3 projects × ~177pt each) ── -->
+        <div th:classappend="${debug} ? 'dbg-section' : ''" th:attr="data-budget=${debug} ? 'Projects: ~555pt / max 3 projects' : ''">
+            <div th:if="${projects != null and !projects.isEmpty()}">
             <div class="section-title">Selected Projects</div>
 
             <div class="project" th:each="project : ${projects}">
@@ -361,19 +429,25 @@
                 </ul>
             </div>
         </div>
+        <span class="dbg-label" th:if="${debug}" th:text="'Budget: 555pt / 3 projects, ~150pt each'"></span>
+        </div>
 
-        <div th:if="${education != null and !education.isEmpty()}">
-            <div class="section-title">Education</div>
+        <!-- ── Education: budget ~118pt (title 25pt + 3 entries × ~31pt each) ── -->
+        <div th:classappend="${debug} ? 'dbg-section' : ''" th:attr="data-budget=${debug} ? 'Education: ~118pt / max 3 entries' : ''">
+            <div th:if="${education != null and !education.isEmpty()}">
+                <div class="section-title">Education</div>
 
-            <div class="education-item" th:each="edu : ${education}">
-                <div class="degree" th:text="${edu.degree}">BSc Computer Science</div>
-                <div class="school">
-                    <span th:text="${edu.school}">Kristianstad University</span>
-                    <span th:if="${edu.year != null and !edu.year.isEmpty()}">
-                        — <span th:text="${edu.year}">2026</span>
-                    </span>
+                <div class="education-item" th:each="edu : ${education}">
+                    <div class="degree" th:text="${edu.degree}">BSc Computer Science</div>
+                    <div class="school">
+                        <span th:text="${edu.school}">Kristianstad University</span>
+                        <span th:if="${edu.year != null and !edu.year.isEmpty()}">
+                            — <span th:text="${edu.year}">2026</span>
+                        </span>
+                    </div>
                 </div>
             </div>
+            <span class="dbg-label" th:if="${debug}" th:text="'Budget: 118pt / 3 entries'"></span>
         </div>
 
     </div>

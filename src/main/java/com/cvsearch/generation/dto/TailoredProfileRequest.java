@@ -8,7 +8,8 @@ public record TailoredProfileRequest(
         List<ProjectEntry> projects,
         List<EducationEntry> education,
         List<String> languages,
-        List<String> certifications) {
+        List<String> certifications,
+        List<String> coursework) {
 
     public record ProjectEntry(
             String name,

@@ -8,6 +8,10 @@ spring:
       ddl-auto: create-drop
     show-sql: true
 
+logging:
+  level:
+    org.apache.fontbox: ERROR
+
 server:
   port: 8080
 

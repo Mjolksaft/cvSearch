@@ -2,122 +2,86 @@
   "projects": [
     {
       "name": "Date-Time Library",
-      "description": "Research-driven Rust library for robust temporal modeling with variable precision, interval reasoning, time zone support, leap second handling, and Python bindings.",
-      "technologies": [
-        "Rust",
-        "PyO3",
-        "Python",
-        "Streamlit"
-      ],
+      "description": "Rust temporal modeling library with variable precision, interval reasoning (Allen algebra), time zones, leap seconds, and Python bindings.",
+      "technologies": ["Rust", "Streamlit"],
       "highlights": [
-        "Designed a custom temporal model supporting variable-precision date and time representations from year to millisecond granularity",
-        "Implemented interval-based temporal reasoning using Allen interval algebra and three-valued logic",
-        "Developed support for UTC, TAI, and Unix time representations with conversion between formats",
-        "Implemented leap second detection and handling using official IERS leap second data",
-        "Created date-time arithmetic operations including second, minute, hour, day, month, and year calculations",
-        "Implemented parsing, validation, and normalization of temporal values",
-        "Developed Unix timestamp conversion with temporal edge-case handling",
-        "Created Python bindings using PyO3",
-        "Built comprehensive unit tests covering leap years, leap seconds, interval relations, and timestamp conversions"
+        "Variable-precision temporal model (year to millisecond)",
+        "Interval reasoning using Allen interval algebra and 3-valued logic",
+        "UTC, TAI, Unix time conversions",
+        "Leap second handling using IERS data",
+        "Date-time arithmetic and timestamp conversion",
+        "Parsing, validation, normalization of temporal values",
+        "Python bindings via PyO3",
+        "Unit tests for edge cases and temporal logic"
       ],
       "category": "systems",
-      "strengths": [
-        "systems",
-        "algorithms",
-        "research",
-        "testing"
-      ]
+      "strengths": ["systems", "algorithms", "research", "testing"]
     },
     {
       "name": "HKR Beauty Salon",
-      "description": "Fullstack web application for a beauty salon featuring booking management, authentication, email notifications, and customer loyalty functionality.",
-      "technologies": [
-        "React",
-        "Node.js",
-        "Express",
-        "MongoDB",
-        "JWT",
-        "Google OAuth",
-        "JavaScript"
-      ],
+      "description": "Fullstack salon booking platform with auth, booking system, email notifications, and loyalty features.",
+      "technologies": ["React", "Node.js", "Express", "MongoDB", "JWT", "Google OAuth", "JavaScript"],
       "highlights": [
-        "Built user registration and login functionality using JWT authentication",
-        "Integrated Google OAuth authentication",
-        "Implemented appointment booking and reservation workflows",
-        "Designed MongoDB models for users, bookings, employees, services, and available times",
-        "Created REST APIs for users, bookings, employees, services, mail, statistics, and administration",
-        "Implemented role-based authorization for admin and customer accounts",
-        "Built email confirmation functionality for customer bookings",
-        "Developed customer loyalty and discount coupon functionality",
-        "Created administrative statistics dashboards"
+        "JWT authentication and registration system",
+        "Google OAuth integration",
+        "Booking and reservation workflows",
+        "MongoDB models for users, bookings, services, employees",
+        "REST APIs for core modules and admin",
+        "Role-based authorization",
+        "Email booking confirmations",
+        "Customer loyalty and discount system",
+        "Admin statistics dashboard"
       ],
       "category": "fullstack",
-      "strengths": [
-        "backend",
-        "frontend",
-        "authentication",
-        "database-design"
-      ]
+      "strengths": ["backend", "frontend", "authentication", "database-design"]
     },
     {
       "name": "Smart House Backend",
-      "description": "Backend system for controlling and managing smart home devices through authenticated REST APIs.",
-      "technologies": [
-        "Node.js",
-        "Express",
-        "JWT",
-        "REST API",
-        "JavaScript"
-      ],
+      "description": "REST API backend for smart home device control with secure authentication.",
+      "technologies": ["Node.js", "Express", "JWT", "REST API", "JavaScript"],
       "highlights": [
-        "Designed REST APIs for authentication and smart device management",
-        "Implemented JWT-based authentication and authorization",
-        "Created secure login and registration endpoints",
-        "Developed middleware for protecting authenticated routes",
-        "Implemented APIs for controlling smart house devices using command-based requests",
-        "Built support for LCD display messaging through backend endpoints",
-        "Designed backend architecture suitable for IoT device communication",
-        "Implemented secure access control for connected devices"
+        "JWT authentication and authorization",
+        "Secure login and registration endpoints",
+        "Protected routes middleware",
+        "IoT device control via API commands",
+        "LCD messaging support endpoints",
+        "Secure device access control"
       ],
       "category": "backend",
-      "strengths": [
-        "backend",
-        "authentication",
-        "api-design",
-        "iot"
-      ]
+      "strengths": ["backend", "authentication", "api-design", "iot"]
     },
     {
       "name": "Combitech Android Application",
-      "description": "Android application built using clean architecture principles, repository pattern, dependency injection, and modern Android development practices.",
-      "technologies": [
-        "Kotlin",
-        "Android",
-        "Room",
-        "Retrofit",
-        "Dagger",
-        "Hilt",
-        "Coroutines",
-        "Flow"
-      ],
+      "description": "Android app built with clean architecture, MVVM, DI, and modern Android practices.",
+      "technologies": ["Java", "Kotlin", "Android", "Room", "Retrofit", "Dagger", "Hilt", "Coroutines", "Flow"],
       "highlights": [
-        "Implemented feature-based clean architecture with separation of data, domain, and presentation layers",
-        "Designed repository interfaces and implementations to decouple business logic from data access",
-        "Used Room for local persistence and Retrofit for remote API communication",
-        "Implemented use case driven architecture for business operations",
-        "Used Kotlin Flow for asynchronous data streaming and state management",
-        "Implemented dependency injection using Dagger/Hilt modules",
-        "Mapped DTOs into domain models to isolate external API contracts",
-        "Created reusable UI components and ViewModels",
-        "Applied MVVM and clean architecture principles throughout the application"
+        "Clean architecture (data/domain/presentation layers)",
+        "Repository pattern with separation of concerns",
+        "Room local storage and Retrofit API integration",
+        "Use-case driven architecture",
+        "Reactive state with Kotlin Flow",
+        "Dependency injection with Hilt",
+        "DTO to domain mapping",
+        "MVVM architecture with ViewModels"
       ],
       "category": "mobile",
-      "strengths": [
-        "architecture",
-        "mobile",
-        "dependency-injection",
-        "clean-code"
-      ]
+      "strengths": ["architecture", "mobile", "dependency-injection", "clean-code"]
+    },
+    {
+      "name": "CV Search App",
+      "description": "Job search platform with AI-powered CV/cover letter generation and PDF export.",
+      "technologies": ["Java", "Spring Boot", "PostgreSQL", "Thymeleaf", "Hibernate", "Open HTML to PDF", "MapStruct", "Docker", "Ollama"],
+      "highlights": [
+        "REST API with filtering, sorting, pagination",
+        "Integration with Arbetsförmedlingen/JobTech API",
+        "AI CV and cover letter generation via Ollama",
+        "PDF generation with Thymeleaf templates",
+        "User profile system with structured JSON data",
+        "Chrome extension for saving jobs",
+        "Dockerized deployment setup"
+      ],
+      "category": "fullstack",
+      "strengths": ["backend", "frontend", "api-design", "ai-integration", "devops"]
     }
   ]
 }

@@ -1,5 +1,17 @@
-GET http://localhost:8080/api/jobs/1/cv-prompt?userId=1
+GET http://localhost:8080/api/users/1
 
+
+#################################
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+   "id":1,
+   "name":"David Kalla",
+   "email":"Kalla01@hotmail.se",
+   "password":"pass123",
+   "role":"USER"
+}
 ### Generate tailored CV PDF
 POST http://localhost:8080/api/jobs/1/cv?userId=1&template=sidebar
 Content-Type: application/json
@@ -74,3 +86,6 @@ Content-Type: application/json
 {
   "prompt": "poopy scoopy"
 }
+
+################################
+DELETE http://localhost:8080/api/users/5

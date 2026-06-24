@@ -21,6 +21,8 @@ import com.cvsearch.generation.dto.TailoredProfileRequest.ProjectEntry;
 
 import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 
+import org.springframework.core.io.ClassPathResource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -74,6 +76,7 @@ public class CvPdfService {
         List<Map<String, Object>> education = parseJsonListOfMaps(profile.getEducation());
         List<String> languages = parseJsonList(profile.getLanguages());
         List<String> certifications = parseJsonList(profile.getCertifications());
+        List<String> coursework = parseJsonList(profile.getCoursework());
 
         String email = user.getEmail() != null ? user.getEmail() : "";
         String jobLocation = job.getLocation() != null ? job.getLocation() : "";
@@ -87,10 +90,43 @@ public class CvPdfService {
                 user.getName(), job.getTitle(),
                 job.getCompany() != null ? job.getCompany().getName() : "",
                 safe(profile.getSummary()),
-                skills, projects, education, languages, certifications,
+                skills, projects, education, languages, certifications, coursework,
                 email, jobLocation, phone, github, linkedin, city, country);
 
         return generatePdf(context, template);
+    }
+
+    public String generateHtml(Long jobId, Long userId, String template, boolean debug) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new EntityNotFoundException("Job not found with id: " + jobId));
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found for user id: " + userId));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+
+        List<Map<String, Object>> projects = limitProjects(parseJsonListOfMaps(profile.getProjects()), 3, 4);
+        List<String> skills = limitList(parseJsonList(profile.getSkills()), 15);
+        List<Map<String, Object>> education = parseJsonListOfMaps(profile.getEducation());
+        List<String> languages = parseJsonList(profile.getLanguages());
+        List<String> certifications = parseJsonList(profile.getCertifications());
+        List<String> coursework = parseJsonList(profile.getCoursework());
+
+        String email = user.getEmail() != null ? user.getEmail() : "";
+        String jobLocation = job.getLocation() != null ? job.getLocation() : "";
+        String phone = profile.getPhone() != null ? profile.getPhone() : "";
+        String github = profile.getGithub() != null ? profile.getGithub() : "";
+        String linkedin = profile.getLinkedin() != null ? profile.getLinkedin() : "";
+        String city = profile.getCity() != null ? profile.getCity() : "";
+        String country = profile.getCountry() != null ? profile.getCountry() : "";
+
+        Context context = buildBaseContext(
+                user.getName(), job.getTitle(),
+                job.getCompany() != null ? job.getCompany().getName() : "",
+                safe(profile.getSummary()),
+                skills, projects, education, languages, certifications, coursework,
+                email, jobLocation, phone, github, linkedin, city, country);
+
+        return generateHtml(context, template, debug);
     }
 
     public byte[] generateTailoredCvPdf(Long jobId, Long userId,
@@ -134,6 +170,11 @@ public class CvPdfService {
         String city = profile.getCity() != null ? profile.getCity() : "";
         String country = profile.getCountry() != null ? profile.getCountry() : "";
 
+        // Use AI-filtered coursework if provided, otherwise fall back to full profile list
+        List<String> coursework = tailored.coursework() != null
+                ? tailored.coursework()
+                : parseJsonList(profile.getCoursework());
+
         Context context = buildBaseContext(
                 user.getName(), job.getTitle(),
                 job.getCompany() != null ? job.getCompany().getName() : "",
@@ -143,6 +184,7 @@ public class CvPdfService {
                 eduMaps,
                 tailored.languages() != null ? tailored.languages() : List.of(),
                 tailored.certifications() != null ? tailored.certifications() : List.of(),
+                coursework,
                 email, jobLocation, phone, github, linkedin, city, country);
 
         return generatePdf(context, template);
@@ -153,6 +195,7 @@ public class CvPdfService {
             List<Map<String, Object>> projects,
             List<Map<String, Object>> education,
             List<String> languages, List<String> certifications,
+            List<String> coursework,
             String email, String jobLocation,
             String phone, String github, String linkedin,
             String city, String country) {
@@ -174,6 +217,7 @@ public class CvPdfService {
         context.setVariable("education", education != null ? education : List.of());
         context.setVariable("languages", languages != null ? languages : List.of());
         context.setVariable("certifications", certifications != null ? certifications : List.of());
+        context.setVariable("coursework", coursework != null ? coursework : List.of());
         context.setVariable("email", email);
         context.setVariable("jobLocation", jobLocation);
         context.setVariable("phone", phone);
@@ -185,13 +229,24 @@ public class CvPdfService {
     }
 
     private byte[] generatePdf(Context context, String template) {
+        String html = generateHtml(context, template, false);
+        return renderPdf(html);
+    }
+
+    /**
+     * Generate the CV as HTML (not PDF). When {@code debug} is true, sections are
+     * outlined with dashed borders and budget annotations are shown — useful for
+     * visualising the page layout in a browser. Debug mode is ignored by the PDF
+     * renderer (OpenHTMLtoPDF does not support @media screen).
+     */
+    public String generateHtml(Context context, String template, boolean debug) {
         boolean isSidebar = template != null && template.equals("sidebar");
         String templateName = isSidebar ? "cv-template2" : "cv-template";
         if (isSidebar) {
             context.setVariable("profileImage", loadPhotoDataUri());
         }
-        String html = templateEngine.process(templateName, context);
-        return renderPdf(html);
+        context.setVariable("debug", debug);
+        return templateEngine.process(templateName, context);
     }
 
     private String loadPhotoDataUri() {
@@ -246,12 +301,30 @@ public class CvPdfService {
             com.openhtmltopdf.pdfboxout.PdfRendererBuilder builder = new com.openhtmltopdf.pdfboxout.PdfRendererBuilder();
             builder.withHtmlContent(html, null);
             builder.useSVGDrawer(new BatikSVGDrawer());
+
+            // Register custom fonts
+            registerFont(builder, "templates/fonts/Montserrat-ExtraBold.ttf", "Montserrat ExtraBold");
+            registerFont(builder, "templates/fonts/Montserrat-Medium.ttf", "Montserrat Medium");
+            registerFont(builder, "templates/fonts/OpenSans-Regular.ttf", "Open Sans");
+
             builder.toStream(baos);
             builder.run();
             return baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate PDF", e);
         }
+    }
+
+    private void registerFont(com.openhtmltopdf.pdfboxout.PdfRendererBuilder builder, String classpath, String family) {
+        builder.useFont(
+                () -> {
+                    try {
+                        return new ClassPathResource(classpath).getInputStream();
+                    } catch (java.io.IOException e) {
+                        throw new RuntimeException("Failed to load font: " + classpath, e);
+                    }
+                },
+                family);
     }
 
     private List<String> parseJsonList(String json) {

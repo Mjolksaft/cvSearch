@@ -35,6 +35,9 @@ public class UserProfile {
     @Column(columnDefinition = "TEXT")
     private String certifications;
 
+    @Column(columnDefinition = "TEXT")
+    private String coursework;
+
     private String phone;
     private String github;
     private String linkedin;
@@ -50,13 +53,14 @@ public class UserProfile {
 
     }
 
-    public UserProfile(String summary, String projects, String skills, String education, String languages, String certifications, String phone, String github, String linkedin, String city, String country, User user) {
+    public UserProfile(String summary, String projects, String skills, String education, String languages, String certifications, String coursework, String phone, String github, String linkedin, String city, String country, User user) {
         this.summary = summary;
         this.projects = projects;
         this.skills = skills;
         this.education = education;
         this.languages = languages;
         this.certifications = certifications;
+        this.coursework = coursework;
         this.phone = phone;
         this.github = github;
         this.linkedin = linkedin;
@@ -118,6 +122,14 @@ public class UserProfile {
 
     public void setCertifications(String certifications) {
         this.certifications = certifications;
+    }
+
+    public String getCoursework() {
+        return this.coursework;
+    }
+
+    public void setCoursework(String coursework) {
+        this.coursework = coursework;
     }
 
     public String getPhone() {
