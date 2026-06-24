@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,61 @@ import jakarta.persistence.EntityNotFoundException;
 public class CvPdfService {
 
     private static final Logger log = LoggerFactory.getLogger(CvPdfService.class);
+
+    /** Available color schemes — map of scheme name → color variables */
+    public static final Map<String, Map<String, String>> COLOR_SCHEMES = new LinkedHashMap<>();
+    static {
+        COLOR_SCHEMES.put("classic-dark-navy", Map.of(
+            "sidebarBg", "#1B2A3B",
+            "sidebarText", "#EAEAEA",
+            "sidebarTextMuted", "#CCC",
+            "accent", "#C9A94E",
+            "accentText", "#1B2A3B",
+            "bodyBg", "#F2EEE4",
+            "mainText", "#000",
+            "mainTextMuted", "#555"
+        ));
+        COLOR_SCHEMES.put("professional-blue", Map.of(
+            "sidebarBg", "#111827",
+            "sidebarText", "#e5e7eb",
+            "sidebarTextMuted", "#9ca3af",
+            "accent", "#2563eb",
+            "accentText", "#ffffff",
+            "bodyBg", "#ffffff",
+            "mainText", "#111827",
+            "mainTextMuted", "#374151"
+        ));
+        COLOR_SCHEMES.put("clean-light-gray", Map.of(
+            "sidebarBg", "#f3f4f6",
+            "sidebarText", "#111827",
+            "sidebarTextMuted", "#6b7280",
+            "accent", "#374151",
+            "accentText", "#ffffff",
+            "bodyBg", "#ffffff",
+            "mainText", "#111827",
+            "mainTextMuted", "#4b5563"
+        ));
+        COLOR_SCHEMES.put("modern-tech-dark", Map.of(
+            "sidebarBg", "#0f172a",
+            "sidebarText", "#f1f5f9",
+            "sidebarTextMuted", "#94a3b8",
+            "accent", "#22c55e",
+            "accentText", "#0b1220",
+            "bodyBg", "#0b1220",
+            "mainText", "#e5e7eb",
+            "mainTextMuted", "#9ca3af"
+        ));
+        COLOR_SCHEMES.put("indigo-minimal-premium", Map.of(
+            "sidebarBg", "#1e1b4b",
+            "sidebarText", "#eef2ff",
+            "sidebarTextMuted", "#a5b4fc",
+            "accent", "#6366f1",
+            "accentText", "#ffffff",
+            "bodyBg", "#ffffff",
+            "mainText", "#111827",
+            "mainTextMuted", "#374151"
+        ));
+    }
 
     private final JobRepository jobRepository;
     private final UserProfileRepository profileRepository;
@@ -131,7 +187,25 @@ public class CvPdfService {
 
     public byte[] generateTailoredCvPdf(Long jobId, Long userId,
             TailoredProfileRequest tailored,
-            String template) {
+            String template, String schemeName) {
+        Context context = buildTailoredContext(jobId, userId, tailored);
+        return generatePdf(context, template, schemeName);
+    }
+
+    public String generateTailoredHtml(Long jobId, Long userId,
+            TailoredProfileRequest tailored,
+            String template, boolean debug, String schemeName) {
+        Context context = buildTailoredContext(jobId, userId, tailored);
+        return generateHtml(context, template, debug, schemeName);
+    }
+
+    /**
+     * Build a Thymeleaf context from a TailoredProfileRequest, loading
+     * supporting data (job, user, profile) from the database. Shared by
+     * the PDF and HTML methods above.
+     */
+    private Context buildTailoredContext(Long jobId, Long userId,
+                                          TailoredProfileRequest tailored) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new EntityNotFoundException("Job not found with id: " + jobId));
         User user = userRepository.findById(userId)
@@ -170,12 +244,11 @@ public class CvPdfService {
         String city = profile.getCity() != null ? profile.getCity() : "";
         String country = profile.getCountry() != null ? profile.getCountry() : "";
 
-        // Use AI-filtered coursework if provided, otherwise fall back to full profile list
         List<String> coursework = tailored.coursework() != null
                 ? tailored.coursework()
                 : parseJsonList(profile.getCoursework());
 
-        Context context = buildBaseContext(
+        return buildBaseContext(
                 user.getName(), job.getTitle(),
                 job.getCompany() != null ? job.getCompany().getName() : "",
                 safe(tailored.summary()),
@@ -186,8 +259,6 @@ public class CvPdfService {
                 tailored.certifications() != null ? tailored.certifications() : List.of(),
                 coursework,
                 email, jobLocation, phone, github, linkedin, city, country);
-
-        return generatePdf(context, template);
     }
 
     private Context buildBaseContext(String name, String jobTitle, String companyName,
@@ -228,9 +299,20 @@ public class CvPdfService {
         return context;
     }
 
-    private byte[] generatePdf(Context context, String template) {
-        String html = generateHtml(context, template, false);
+    /** Convenience overloads with no scheme (uses classic hardcoded colors) */
+    public String generateTailoredHtml(Long jobId, Long userId,
+            TailoredProfileRequest tailored,
+            String template, boolean debug) {
+        return generateTailoredHtml(jobId, userId, tailored, template, debug, null);
+    }
+
+    private byte[] generatePdf(Context context, String template, String schemeName) {
+        String html = generateHtml(context, template, false, schemeName);
         return renderPdf(html);
+    }
+
+    private byte[] generatePdf(Context context, String template) {
+        return generatePdf(context, template, null);
     }
 
     /**
@@ -239,14 +321,28 @@ public class CvPdfService {
      * visualising the page layout in a browser. Debug mode is ignored by the PDF
      * renderer (OpenHTMLtoPDF does not support @media screen).
      */
-    public String generateHtml(Context context, String template, boolean debug) {
+    public String generateHtml(Context context, String template, boolean debug,
+                               String schemeName) {
         boolean isSidebar = template != null && template.equals("sidebar");
         String templateName = isSidebar ? "cv-template2" : "cv-template";
         if (isSidebar) {
             context.setVariable("profileImage", loadPhotoDataUri());
         }
         context.setVariable("debug", debug);
+
+        // Apply color scheme
+        if (schemeName != null && COLOR_SCHEMES.containsKey(schemeName)) {
+            context.setVariable("schemeColors", COLOR_SCHEMES.get(schemeName));
+        } else if (schemeName != null) {
+            log.warn("Unknown color scheme '{}', falling back to classic", schemeName);
+        }
+
         return templateEngine.process(templateName, context);
+    }
+
+    /** Convenience overload — no scheme (uses classic hardcoded colors). */
+    public String generateHtml(Context context, String template, boolean debug) {
+        return generateHtml(context, template, debug, null);
     }
 
     private String loadPhotoDataUri() {

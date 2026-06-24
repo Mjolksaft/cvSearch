@@ -45,17 +45,20 @@ public class GenerationController {
     private final ObjectMapper objectMapper;
     private final UserProfileRepository profileRepository;
     private final ProjectScorer projectScorer;
+    private final AiContentService aiContentService;
 
     public GenerationController(CvPromptService promptService, CvPdfService pdfService,
                                 AiService aiService, ObjectMapper objectMapper,
                                 UserProfileRepository profileRepository,
-                                ProjectScorer projectScorer) {
+                                ProjectScorer projectScorer,
+                                AiContentService aiContentService) {
         this.promptService = promptService;
         this.pdfService = pdfService;
         this.aiService = aiService;
         this.objectMapper = objectMapper;
         this.profileRepository = profileRepository;
         this.projectScorer = projectScorer;
+        this.aiContentService = aiContentService;
     }
 
     @GetMapping("/{jobId}/cv-prompt")
@@ -162,9 +165,10 @@ public class GenerationController {
             @PathVariable Long jobId,
             @RequestParam(defaultValue = "1") Long userId,
             @RequestParam(defaultValue = "sidebar") String template,
+            @RequestParam(defaultValue = "professional-blue") String scheme,
             @RequestBody TailoredProfileRequest tailoredProfile) {
 
-        byte[] pdf = pdfService.generateTailoredCvPdf(jobId, userId, tailoredProfile, template);
+        byte[] pdf = pdfService.generateTailoredCvPdf(jobId, userId, tailoredProfile, template, scheme);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
@@ -194,124 +198,11 @@ public class GenerationController {
     public ResponseEntity<byte[]> generateCvWithAi(
             @PathVariable Long jobId,
             @RequestParam(defaultValue = "1") Long userId,
+            @RequestParam(defaultValue = "classic") String scheme,
             @RequestParam(defaultValue = "sidebar") String template) {
 
-        UserProfile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found for user id: " + userId));
-
-        // ── Step 1: Extract job requirements ──
-        String reqPrompt = promptService.buildExtractRequirementsPrompt(jobId);
-        String reqResponse = aiService.chat(reqPrompt);
-        JobRequirements requirements = parseJobRequirements(reqResponse);
-
-        // ── Step 2: Score projects by technology overlap (programmatic) ──
-        List<ProjectScorer.ProjectScore> allScores = projectScorer.scoreAll(
-                requirements, profile.getProjects());
-
-        log.info("=== Project scores for job {} ===", jobId);
-        log.info("Requirements: required={}, preferred={}", requirements.required(), requirements.preferred());
-        log.info("Minimum score threshold: {}", ProjectScorer.MINIMUM_SCORE);
-        allScores.stream()
-                .sorted(java.util.Comparator.comparingDouble(ProjectScorer.ProjectScore::score).reversed())
-                .forEach(s -> log.info("  {} → {} (selected: {})",
-                        s.name(), s.score(), s.score() >= ProjectScorer.MINIMUM_SCORE));
-        log.info("==============================");
-
-        List<String> selectedProjectNames = projectScorer.selectTopProjects(
-                requirements, profile.getProjects(), 3);
-
-        if (selectedProjectNames.isEmpty()) {
-            throw new RuntimeException("No projects found in profile — add at least one project to generate a CV.");
-        }
-
-        // ── Step 3: Rewrite selected project descriptions ──
-        String selectedProjectsFull = promptService.formatSelectedProjectsForPrompt(
-                profile.getProjects(), selectedProjectNames);
-
-        // Compute proportional word limits based on scores
-        // Only the best project gets up to ~100 words, less important ones get less
-        Map<String, Double> selectedScoreMap = allScores.stream()
-                .filter(s -> selectedProjectNames.contains(s.name()))
-                .collect(Collectors.toMap(ProjectScorer.ProjectScore::name, ProjectScorer.ProjectScore::score));
-        double totalScore = selectedScoreMap.values().stream().mapToDouble(d -> d).sum();
-        int totalBudget = 250; // total word budget across all projects
-        int maxPerProject = 120;
-        int minPerProject = 60;
-        String spaceAllocation = selectedProjectNames.stream()
-                .map(name -> {
-                    double pct = selectedScoreMap.get(name) / totalScore;
-                    int words = (int) Math.round(pct * totalBudget);
-                    words = Math.min(maxPerProject, Math.max(minPerProject, words));
-                    int lower = (int) Math.round(words * 0.8);
-                    int upper = Math.min(maxPerProject, (int) Math.round(words * 1.2));
-                    return String.format("- %s (relevance %.0f%%) → description %d-%d words, highlights unlimited",
-                            name, pct * 100, lower, upper);
-                })
-                .collect(Collectors.joining("\n"));
-
-        String rewritePrompt = promptService.buildRewriteProjectsPrompt(
-                toJson(requirements), selectedProjectsFull, spaceAllocation);
-        String rewriteResponse = aiService.chat(rewritePrompt);
-        List<ProjectEntry> rewrittenProjects = parseProjectEntries(rewriteResponse);
-
-        // Safety: overwrite technologies + highlights with originals so AI never invents
-        rewrittenProjects = enforceOriginalTechnologies(rewrittenProjects, profile.getProjects());
-        rewrittenProjects = enforceOriginalHighlights(rewrittenProjects, profile.getProjects());
-
-        // Re-sort rewritten projects by relevance score so the best match appears first in the PDF
-        // (make a mutable copy first — enforceOriginal* returns immutable lists)
-        java.util.Map<String, Double> scoreMap = allScores.stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        ProjectScorer.ProjectScore::name,
-                        ProjectScorer.ProjectScore::score));
-        var mutableProjects = new java.util.ArrayList<>(rewrittenProjects);
-        mutableProjects.sort((a, b) -> {
-            double scoreA = scoreMap.getOrDefault(a.name(), 0.0);
-            double scoreB = scoreMap.getOrDefault(b.name(), 0.0);
-            return Double.compare(scoreB, scoreA);
-        });
-        rewrittenProjects = mutableProjects;
-
-        // ── Step 4: Write final profile (summary + skills) ──
-        String finalPrompt = promptService.buildFinalProfilePrompt(
-                toJson(requirements),
-                toJson(rewrittenProjects),
-                safe(profile.getSummary()),
-                safe(profile.getSkills()),
-                safe(profile.getEducation()),
-                safe(profile.getLanguages()),
-                safe(profile.getCertifications()),
-                safe(profile.getCoursework()));
-        String finalResponse = aiService.chat(finalPrompt);
-        ProfileOutput profileOutput = parseProfileOutput(finalResponse);
-
-        // ── Assemble into the final result ──
-        String summary = limitWords(profileOutput.summary(), 50);
-        List<String> skills = profileOutput.skills() != null
-                ? profileOutput.skills().stream().limit(10).toList()
-                : List.of();
-
-        // Inject static fields from the saved profile (these must NOT change)
-        List<EducationEntry> staticEducation = parseEducationFromProfile(profile);
-        List<String> staticLanguages = parseJsonStringList(profile.getLanguages());
-        List<String> staticCertifications = parseJsonStringList(profile.getCertifications());
-
-        // Take coursework from profile (the step 4 prompt shows it to the AI for context but
-        // doesn't ask the AI to return it — just use the profile's list, limited to 5)
-        List<String> coursework = parseJsonStringList(profile.getCoursework()).stream()
-                .limit(5)
-                .toList();
-
-        TailoredProfileRequest safe = new TailoredProfileRequest(
-                summary,
-                skills,
-                rewrittenProjects,
-                staticEducation,
-                staticLanguages,
-                staticCertifications,
-                coursework);
-
-        byte[] pdf = pdfService.generateTailoredCvPdf(jobId, userId, safe, template);
+        TailoredProfileRequest content = aiContentService.generateContent(jobId, userId);
+        byte[] pdf = pdfService.generateTailoredCvPdf(jobId, userId, content, template, scheme);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
@@ -319,6 +210,8 @@ public class GenerationController {
                         "attachment; filename=\"cv-" + jobId + ".pdf\"")
                 .body(pdf);
     }
+
+    /* Edit page moved to PageController */
 
     @GetMapping("/{jobId}/cover-letter/ai")
     public ResponseEntity<String> generateCoverLetterWithAi(

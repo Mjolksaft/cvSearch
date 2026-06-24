@@ -1,9 +1,16 @@
 package com.cvsearch.web;
 
+import com.cvsearch.generation.AiContentService;
+import com.cvsearch.generation.CvPdfService;
+import com.cvsearch.generation.dto.TailoredProfileRequest;
 import com.cvsearch.job.JobService;
 import com.cvsearch.job.dto.JobResponse;
+import com.cvsearch.userProfile.UserProfile;
+import com.cvsearch.userProfile.UserProfileRepository;
 import com.cvsearch.userProfile.UserProfileService;
 import com.cvsearch.userProfile.dto.ProfileResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,16 +23,28 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Controller
 public class PageController {
 
     private final JobService jobService;
     private final UserProfileService profileService;
+    private final UserProfileRepository profileRepository;
+    private final AiContentService aiContentService;
+    private final CvPdfService cvPdfService;
+    private final ObjectMapper objectMapper;
 
-    public PageController(JobService jobService, UserProfileService profileService) {
+    public PageController(JobService jobService, UserProfileService profileService,
+                          UserProfileRepository profileRepository,
+                          AiContentService aiContentService, CvPdfService cvPdfService,
+                          ObjectMapper objectMapper) {
         this.jobService = jobService;
         this.profileService = profileService;
+        this.profileRepository = profileRepository;
+        this.aiContentService = aiContentService;
+        this.cvPdfService = cvPdfService;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/")
@@ -105,6 +124,51 @@ public class PageController {
         }
         model.addAttribute("userId", 1L);
         return "profile/index";
+    }
+
+    @GetMapping("/jobs/{jobId}/cv/edit")
+    public String showCvEditPage(
+            @PathVariable Long jobId,
+            @RequestParam(defaultValue = "1") Long userId,
+            Model model) {
+
+        TailoredProfileRequest content = aiContentService.generateContent(jobId, userId);
+
+        // Render the CV template as HTML for inline editing
+        String cvHtml = cvPdfService.generateTailoredHtml(jobId, userId, content, "sidebar", true);
+
+        // Load full profile skills for the "+" add skill dropdown
+        List<String> allSkills = List.of();
+        try {
+            UserProfile profile = profileRepository.findByUserId(userId)
+                    .orElseThrow(() -> new RuntimeException("Profile not found"));
+            allSkills = objectMapper.readValue(profile.getSkills(), new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            // profile not found or skills not parseable — fallback to empty
+        }
+
+        model.addAttribute("jobId", jobId);
+        model.addAttribute("userId", userId);
+        model.addAttribute("cvHtml", cvHtml);
+
+        // Serialize read-only data as JSON strings for JS
+        try {
+            String eduJson = objectMapper.writeValueAsString(content.education() != null ? content.education() : List.of());
+            String langJson = objectMapper.writeValueAsString(content.languages() != null ? content.languages() : List.of());
+            String certJson = objectMapper.writeValueAsString(content.certifications() != null ? content.certifications() : List.of());
+            String allSkillsJson = objectMapper.writeValueAsString(allSkills);
+            model.addAttribute("educationJson", eduJson);
+            model.addAttribute("languagesJson", langJson);
+            model.addAttribute("certificationsJson", certJson);
+            model.addAttribute("allSkillsJson", allSkillsJson);
+        } catch (Exception e) {
+            model.addAttribute("educationJson", "[]");
+            model.addAttribute("languagesJson", "[]");
+            model.addAttribute("certificationsJson", "[]");
+            model.addAttribute("allSkillsJson", "[]");
+        }
+
+        return "jobs/cv-edit";
     }
 
     private LocalDate parseDate(String dateStr) {

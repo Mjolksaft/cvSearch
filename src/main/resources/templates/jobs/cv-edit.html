@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit CV — CV Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* ── Toolbar ── */
+        .cv-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            background: #111827;
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .cv-toolbar .brand {
+            color: #C9A94E;
+            font-weight: 900;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .cv-toolbar .btn-gold {
+            background: var(--accent);
+            color: var(--accent-text);
+            border: none;
+            font-weight: 700;
+            padding: 6px 20px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .cv-toolbar .btn-gold:hover {
+            filter: brightness(1.15);
+        }
+        .cv-toolbar .btn-outline-gold {
+            background: transparent;
+            color: var(--accent);
+            border: 1.5px solid var(--accent);
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .cv-toolbar .btn-outline-gold:hover {
+            background: var(--accent);
+            color: var(--accent-text);
+        }
+        .cv-toolbar .status-msg {
+            color: #EAEAEA;
+            font-size: 12px;
+        }
+
+        /* ── CV Preview Area ── */
+        body {
+            background: #e8e4da;
+            padding-top: 56px;
+            margin: 0;
+        }
+        .cv-preview {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: #fff;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ── CV template styles (copied from cv-template2) ── */
+        :root {
+            --sidebar-bg: #111827;
+            --sidebar-text: #e5e7eb;
+            --sidebar-text-muted: #9ca3af;
+            --accent: #2563eb;
+            --accent-text: #ffffff;
+            --body-bg: #ffffff;
+            --main-text: #111827;
+            --main-text-muted: #374151;
+        }
+        .cv-preview {
+            font-family: 'Open Sans', Calibri, Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            font-weight: 400;
+            line-height: 1.5;
+            color: var(--main-text) !important;
+            background: var(--body-bg) !important;
+        }
+        .sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 26%;
+            height: 100%;
+            background: var(--sidebar-bg) !important;
+            padding: 22px 25px 22px 25px;
+            color: var(--sidebar-text) !important;
+            overflow: hidden;
+        }
+        .sidebar .section-title {
+            font-size: 11.5pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            background: var(--accent) !important;
+            color: var(--accent-text) !important;
+            padding: 5px 0;
+            margin: 14px 0 7px 0;
+            display: block;
+            text-align: center;
+            width: 100%;
+            border-radius: 2px;
+        }
+        .sidebar .contact-item {
+            font-size: 9.5pt;
+            margin-bottom: 5px;
+            color: #CCC;
+            line-height: 1.3;
+        }
+        .sidebar .contact-icon {
+            color: var(--accent) !important;
+            width: 14px;
+            display: inline-block;
+            text-align: center;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        .sidebar .contact-icon svg {
+            vertical-align: middle;
+            margin-top: 3px;
+            fill: var(--accent) !important;
+        }
+        .sidebar .skill-tag {
+            display: inline-block;
+            background: var(--accent) !important;
+            padding: 2px 8px;
+            margin: 2px 3px 2px 0;
+            border-radius: 3px;
+            font-size: 9pt;
+            color: var(--accent-text) !important;
+        }
+        .sidebar .language-item {
+            font-size: 9.5pt;
+            margin-bottom: 3px;
+            color: var(--sidebar-text-muted) !important;
+        }
+        .sidebar-list {
+            margin: 4px 0 0 12px;
+            padding: 0;
+        }
+        .sidebar-list li {
+            font-size: 9pt;
+            margin-bottom: 2.5px;
+            color: var(--sidebar-text-muted) !important;
+            line-height: 1.3;
+        }
+        .main {
+            margin-left: 32%;
+            padding: 22px 22px 22px 28px;
+        }
+        .main-name {
+            display: block;
+            text-align: center;
+            width: 100%;
+            font-family: 'Montserrat ExtraBold', Calibri, Arial, sans-serif;
+            font-size: 30pt;
+            font-weight: 900;
+            color: var(--main-text) !important;
+            letter-spacing: 6px;
+            margin: 0 0 2px 0;
+            padding: 8px 0 4px 0;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+        .main-name .accent {
+            color: var(--accent) !important;
+        }
+        .main-role {
+            display: block;
+            text-align: center;
+            width: 100%;
+            font-family: 'Montserrat Medium', Calibri, Arial, sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--main-text-muted) !important;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 0 0 14px 0;
+        }
+        .main .section-title {
+            font-size: 12.5pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            background: var(--accent) !important;
+            color: var(--accent-text) !important;
+            padding: 5px 0;
+            margin: 12px 0 7px 0;
+            display: block;
+            text-align: center;
+            width: 100%;
+            border-radius: 2px;
+        }
+        .main .summary {
+            font-size: 9.5pt;
+            font-weight: 400;
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+        .project {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--accent) !important;
+        }
+        .project-name {
+            font-weight: 700;
+            font-size: 10.5pt;
+            margin-bottom: 1px;
+            color: var(--main-text) !important;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        .project-tech {
+            font-size: 9pt;
+            color: var(--main-text-muted) !important;
+            margin-bottom: 1px;
+        }
+        .project-desc {
+            font-size: 9.5pt;
+            color: var(--main-text-muted) !important;
+            margin-bottom: 1px;
+            line-height: 1.3;
+        }
+        .main ul {
+            margin: 2px 0 0 13px;
+            padding: 0;
+        }
+        .main li {
+            font-size: 9.5pt;
+            margin-bottom: 1.5px;
+            line-height: 1.3;
+            color: var(--main-text-muted) !important;
+        }
+        .education-item {
+            margin-bottom: 5px;
+        }
+        .education-item .degree {
+            font-weight: bold;
+            font-size: 10pt;
+            color: var(--main-text) !important;
+        }
+        .education-item .school {
+            color: var(--main-text-muted) !important;
+            font-size: 9.5pt;
+        }
+        .sidebar .contact-item {
+            font-size: 9.5pt;
+            margin-bottom: 5px;
+            color: var(--sidebar-text-muted) !important;
+            line-height: 1.3;
+        }
+        .sidebar .profile-image {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 10px solid var(--accent) !important;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ── Skill adder button + dropdown ── */
+        .skill-add-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border: none;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--accent-text);
+            font-size: 16px;
+            font-weight: 900;
+            line-height: 1;
+            cursor: pointer;
+            vertical-align: middle;
+            margin: 2px 0 2px 6px;
+            padding: 0;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .skill-add-btn:hover {
+            filter: brightness(1.15);
+            transform: scale(1.15);
+        }
+        .skill-add-btn:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+        .skill-dropdown {
+            position: absolute;
+            z-index: 1100;
+            background: #fff;
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            max-height: 200px;
+            overflow-y: auto;
+            min-width: 160px;
+            display: none;
+        }
+        .skill-dropdown-item {
+            padding: 6px 12px;
+            font-size: 11px;
+            color: #111827;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.1s;
+        }
+        .skill-dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .skill-dropdown-item:hover {
+            background: var(--accent);
+            color: var(--accent-text);
+        }
+        .skill-dropdown-item.disabled {
+            color: #999;
+            cursor: default;
+            font-style: italic;
+        }
+        .skill-dropdown-item.disabled:hover {
+            background: #fff;
+            color: #999;
+        }
+        .skills-wrapper {
+            position: relative;
+            display: inline;
+        }
+
+        /* ── Scheme picker ── */
+        .scheme-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+            color: #111827;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.1s;
+        }
+        .scheme-option:last-child {
+            border-bottom: none;
+        }
+        .scheme-option:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+        .scheme-option.active {
+            background: #2563eb;
+            color: #fff;
+            font-weight: 700;
+        }
+        .scheme-option .mini-swatch {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,0,0,0.12);
+            flex-shrink: 0;
+        }
+
+    /* ── Inline editing ── */
+        [contenteditable="true"] {
+            cursor: text;
+            outline: none;
+            border-radius: 2px;
+            transition: background 0.15s;
+        }
+        [contenteditable="true"]:hover {
+            background: rgba(201, 169, 78, 0.08);
+        }
+        [contenteditable="true"]:focus {
+            background: rgba(201, 169, 78, 0.15);
+            box-shadow: 0 0 0 2px rgba(201, 169, 78, 0.3);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 800px) {
+            .cv-preview {
+                width: 100%;
+                margin: 10px;
+                min-height: auto;
+            }
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+            .main {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Toolbar ── -->
+    <div class="cv-toolbar">
+        <div>
+            <span class="brand"><i class="bi bi-pencil-square"></i> CV EDITOR</span>
+            <span class="status-msg ms-3" id="statusMsg">Click any text to edit it inline</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Color scheme picker -->
+            <div class="scheme-picker" style="position:relative;">
+                <button class="btn btn-outline-gold btn-sm" id="schemeBtn" style="display:flex;align-items:center;gap:4px;">
+                    <span class="scheme-swatch" id="schemeSwatch" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#2563eb;"></span>
+                    Professional Blue
+                    <i class="bi bi-chevron-down" style="font-size:10px;"></i>
+                </button>
+                <div class="scheme-dropdown" id="schemeDropdown"
+                     style="display:none;position:absolute;top:100%;right:0;z-index:1100;background:#fff;border:1px solid #2563eb;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,0.2);min-width:180px;margin-top:4px;">
+                </div>
+            </div>
+            <a th:href="@{'/jobs/' + ${jobId}}" class="btn btn-outline-gold btn-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <button id="downloadPdfBtn" class="btn-gold">
+                <i class="bi bi-file-pdf"></i> Download PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- ── CV Preview ── -->
+    <div class="cv-preview" id="cvPreview"
+         th:attr="data-job-id=${jobId}, data-user-id=${userId}">
+        <!-- The CV template is rendered here server-side -->
+        <div th:utext="${cvHtml}"></div>
+    </div>
+
+    <!-- ── Read-only data for JS (inlined via Thymeleaf JS inlining) ── -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var READ_ONLY_EDUCATION_JSON = /*[[${educationJson}]]*/ '[]';
+        var READ_ONLY_LANGUAGES_JSON = /*[[${languagesJson}]]*/ '[]';
+        var READ_ONLY_CERTIFICATIONS_JSON = /*[[${certificationsJson}]]*/ '[]';
+        var ALL_SKILLS_JSON = /*[[${allSkillsJson}]]*/ '[]';
+        /*]]>*/
+    </script>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ── Color schemes (must match CvPdfService.COLOR_SCHEMES) ──
+        var COLOR_SCHEMES = {
+            'classic-dark-navy': {
+                sidebarBg: '#1B2A3B', sidebarText: '#EAEAEA', sidebarTextMuted: '#CCC',
+                accent: '#C9A94E', accentText: '#1B2A3B', bodyBg: '#F2EEE4',
+                mainText: '#000', mainTextMuted: '#555'
+            },
+            'professional-blue': {
+                sidebarBg: '#111827', sidebarText: '#e5e7eb', sidebarTextMuted: '#9ca3af',
+                accent: '#2563eb', accentText: '#ffffff', bodyBg: '#ffffff',
+                mainText: '#111827', mainTextMuted: '#374151'
+            },
+            'clean-light-gray': {
+                sidebarBg: '#f3f4f6', sidebarText: '#111827', sidebarTextMuted: '#6b7280',
+                accent: '#374151', accentText: '#ffffff', bodyBg: '#ffffff',
+                mainText: '#111827', mainTextMuted: '#4b5563'
+            },
+            'modern-tech-dark': {
+                sidebarBg: '#0f172a', sidebarText: '#f1f5f9', sidebarTextMuted: '#94a3b8',
+                accent: '#22c55e', accentText: '#0b1220', bodyBg: '#0b1220',
+                mainText: '#e5e7eb', mainTextMuted: '#9ca3af'
+            },
+            'indigo-minimal-premium': {
+                sidebarBg: '#1e1b4b', sidebarText: '#eef2ff', sidebarTextMuted: '#a5b4fc',
+                accent: '#6366f1', accentText: '#ffffff', bodyBg: '#ffffff',
+                mainText: '#111827', mainTextMuted: '#374151'
+            }
+        };
+
+        var currentScheme = 'professional-blue';
+
+        const cvPreview = document.getElementById('cvPreview');
+        const jobId = cvPreview.dataset.jobId;
+        const userId = cvPreview.dataset.userId;
+
+        // ── Make text elements editable ──
+        function enableEditing() {
+            // Summary
+            const summary = cvPreview.querySelector('.summary');
+            if (summary) summary.contentEditable = 'true';
+
+            // Skills
+            cvPreview.querySelectorAll('.skill-tag').forEach(el => {
+                el.contentEditable = 'true';
+                el.style.display = 'inline-block';
+                el.style.minWidth = '30px';
+            });
+
+            // Project names, descriptions, highlights
+            cvPreview.querySelectorAll('.project-name, .project-desc, .project-tech').forEach(el => {
+                el.contentEditable = 'true';
+            });
+            cvPreview.querySelectorAll('.main li').forEach(el => {
+                el.contentEditable = 'true';
+            });
+
+            // Coursework
+            cvPreview.querySelectorAll('.sidebar-list li').forEach(el => {
+                el.contentEditable = 'true';
+            });
+        }
+
+        // ── Collect all edited CV data ──
+        function collectCvData() {
+            const summary = cvPreview.querySelector('.summary')?.textContent?.trim() || '';
+
+            // Skills
+            const skills = [];
+            cvPreview.querySelectorAll('.skill-tag').forEach(el => {
+                const t = el.textContent.trim();
+                if (t) skills.push(t);
+            });
+
+            // Projects
+            const projects = [];
+            cvPreview.querySelectorAll('.project').forEach(proj => {
+                const name = proj.querySelector('.project-name')?.textContent?.trim() || '';
+                const techEl = proj.querySelector('.project-tech');
+                const techText = techEl?.textContent?.replace('Technologies:', '').trim() || '';
+                const technologies = techText.split(',').map(t => t.trim()).filter(Boolean);
+                const description = proj.querySelector('.project-desc')?.textContent?.trim() || '';
+                const highlights = [];
+                proj.querySelectorAll('li').forEach(li => {
+                    const h = li.textContent.trim();
+                    if (h) highlights.push(h);
+                });
+                projects.push({ name, description, technologies, highlights });
+            });
+
+            // Education, languages, certifications (read-only, from JSON strings)
+            var education = [];
+            var languages = [];
+            var certifications = [];
+            try { education = JSON.parse(READ_ONLY_EDUCATION_JSON); } catch(e) {}
+            try { languages = JSON.parse(READ_ONLY_LANGUAGES_JSON); } catch(e) {}
+            try { certifications = JSON.parse(READ_ONLY_CERTIFICATIONS_JSON); } catch(e) {}
+
+            // Coursework
+            const coursework = [];
+            cvPreview.querySelectorAll('.sidebar-list li').forEach(li => {
+                const c = li.textContent.trim();
+                if (c) coursework.push(c);
+            });
+
+            return { summary, skills, projects, education, languages, certifications, coursework };
+        }
+
+        // ── Download PDF ──
+        async function downloadPdf() {
+            const btn = document.getElementById('downloadPdfBtn');
+            const statusMsg = document.getElementById('statusMsg');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+            statusMsg.textContent = 'Generating PDF...';
+            statusMsg.style.color = '#2563eb';
+
+            const payload = collectCvData();
+
+            try {
+                const response = await fetch(`/api/jobs/${jobId}/cv?userId=${userId}&template=sidebar&scheme=${currentScheme}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`Server error ${response.status}: ${errText.slice(0, 200)}`);
+                }
+
+                // Download the PDF
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cv-${jobId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                statusMsg.textContent = 'PDF downloaded!';
+                statusMsg.style.color = '#4caf50';
+            } catch (error) {
+                console.error('PDF generation error:', error);
+                statusMsg.textContent = 'Error: ' + error.message;
+                statusMsg.style.color = '#f44336';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-file-pdf"></i> Download PDF';
+            }
+        }
+
+        document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdf);
+
+        // ── Color scheme picker ──
+        function initSchemePicker() {
+            var schemeBtn = document.getElementById('schemeBtn');
+            var schemeDropdown = document.getElementById('schemeDropdown');
+            var schemeSwatch = document.getElementById('schemeSwatch');
+
+            // Build dropdown items
+            var schemeKeys = Object.keys(COLOR_SCHEMES);
+            schemeKeys.forEach(function(name) {
+                var colors = COLOR_SCHEMES[name];
+                var item = document.createElement('div');
+                item.className = 'scheme-option';
+                item.dataset.scheme = name;
+                item.innerHTML = '<span class="mini-swatch" style="background:' + colors.accent + ';"></span> ' +
+                    name.charAt(0).toUpperCase() + name.slice(1);
+                item.addEventListener('click', function() {
+                    setScheme(name);
+                    schemeDropdown.style.display = 'none';
+                });
+                schemeDropdown.appendChild(item);
+            });
+
+            function setScheme(name) {
+                var colors = COLOR_SCHEMES[name];
+                if (!colors) return;
+                currentScheme = name;
+
+                // Update CSS variables on .cv-preview
+                var preview = document.querySelector('.cv-preview');
+                if (preview) {
+                    preview.style.setProperty('--sidebar-bg', colors.sidebarBg);
+                    preview.style.setProperty('--sidebar-text', colors.sidebarText);
+                    preview.style.setProperty('--sidebar-text-muted', colors.sidebarTextMuted);
+                    preview.style.setProperty('--accent', colors.accent);
+                    preview.style.setProperty('--accent-text', colors.accentText);
+                    preview.style.setProperty('--body-bg', colors.bodyBg);
+                    preview.style.setProperty('--main-text', colors.mainText);
+                    preview.style.setProperty('--main-text-muted', colors.mainTextMuted);
+                }
+
+                // Update button appearance
+                schemeSwatch.style.background = colors.accent;
+                schemeBtn.innerHTML =
+                    '<span class="scheme-swatch" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' +
+                    colors.accent + ';margin-right:4px;"></span> ' +
+                    (name.charAt(0).toUpperCase() + name.slice(1)) +
+                    ' <i class="bi bi-chevron-down" style="font-size:10px;"></i>';
+
+                // Mark active in dropdown
+                schemeDropdown.querySelectorAll('.scheme-option').forEach(function(opt) {
+                    opt.classList.toggle('active', opt.dataset.scheme === name);
+                });
+            }
+
+            // Toggle dropdown
+            schemeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var isVisible = schemeDropdown.style.display !== 'none';
+                schemeDropdown.style.display = isVisible ? 'none' : 'block';
+            });
+
+            // Close on outside click
+            document.addEventListener('click', function(e) {
+                if (!schemeBtn.contains(e.target) && !schemeDropdown.contains(e.target)) {
+                    schemeDropdown.style.display = 'none';
+                }
+            });
+
+            // Initialize with professional-blue
+            setScheme('professional-blue');
+        }
+
+        // Also pass scheme in the PDF request — patch downloadPdf
+        var _origCollect = collectCvData;
+        collectCvData = function() {
+            var data = _origCollect();
+            data.scheme = currentScheme;
+            return data;
+        };
+
+        // ── Inject "+" skill adder ──
+        function injectSkillAdder() {
+            var allSkills = [];
+            try { allSkills = JSON.parse(ALL_SKILLS_JSON); } catch(e) { allSkills = []; }
+            if (allSkills.length === 0) return;
+
+            var sidebar = cvPreview.querySelector('.sidebar');
+            if (!sidebar) return;
+
+            // Find the Skills section title
+            var skillsTitle = null;
+            sidebar.querySelectorAll('.section-title').forEach(function(title) {
+                if (title.textContent.trim() === 'Skills') skillsTitle = title;
+            });
+            if (!skillsTitle) return;
+
+            // Collect current skill-tag elements after this title until next section-title
+            var skillTags = [];
+            var el = skillsTitle.nextElementSibling;
+            while (el && !el.classList.contains('section-title')) {
+                if (el.classList.contains('skill-tag')) {
+                    skillTags.push(el);
+                }
+                el = el.nextElementSibling;
+            }
+
+            // Create wrapper to hold skills + button for proper positioning
+            var wrapper = document.createElement('span');
+            wrapper.className = 'skills-wrapper';
+            var parent = skillsTitle.parentNode;
+            var insertAfter = skillsTitle;
+
+            // Move all skill-tags into the wrapper
+            skillTags.forEach(function(tag) {
+                wrapper.appendChild(tag);
+            });
+            parent.insertBefore(wrapper, insertAfter.nextElementSibling);
+
+            // Create the "+" button
+            var addBtn = document.createElement('button');
+            addBtn.textContent = '+';
+            addBtn.className = 'skill-add-btn';
+            addBtn.type = 'button';
+            wrapper.appendChild(addBtn);
+
+            // Create dropdown
+            var dropdown = document.createElement('div');
+            dropdown.className = 'skill-dropdown';
+            wrapper.appendChild(dropdown);
+
+            function updateDropdown() {
+                var currentSkills = new Set();
+                wrapper.querySelectorAll('.skill-tag').forEach(function(tag) {
+                    currentSkills.add(tag.textContent.trim());
+                });
+
+                dropdown.innerHTML = '';
+                var available = allSkills.filter(function(skill) {
+                    return !currentSkills.has(skill);
+                });
+
+                if (available.length === 0) {
+                    var item = document.createElement('div');
+                    item.textContent = 'All skills added';
+                    item.className = 'skill-dropdown-item disabled';
+                    dropdown.appendChild(item);
+                } else {
+                    available.forEach(function(skill) {
+                        var item = document.createElement('div');
+                        item.textContent = skill;
+                        item.className = 'skill-dropdown-item';
+                        item.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            // Create new skill tag
+                            var newTag = document.createElement('span');
+                            newTag.className = 'skill-tag';
+                            newTag.contentEditable = 'true';
+                            newTag.style.display = 'inline-block';
+                            newTag.style.minWidth = '30px';
+                            newTag.textContent = skill;
+                            wrapper.insertBefore(newTag, addBtn);
+                            dropdown.style.display = 'none';
+                            updateDropdown();
+                        });
+                        dropdown.appendChild(item);
+                    });
+                }
+            }
+
+            addBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var isVisible = dropdown.style.display !== 'none';
+                dropdown.style.display = isVisible ? 'none' : 'block';
+                if (!isVisible) {
+                    // Position the dropdown
+                    var rect = wrapper.getBoundingClientRect();
+                    dropdown.style.position = 'absolute';
+                    dropdown.style.left = '0';
+                    dropdown.style.top = (rect.height + 4) + 'px';
+                    updateDropdown();
+                }
+            });
+
+            // Close dropdown on outside click
+            document.addEventListener('click', function(e) {
+                if (!wrapper.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        }
+
+        // ── Init ──
+        enableEditing();
+        injectSkillAdder();
+        initSchemePicker();
+    })();
+    </script>
+</body>
+</html>

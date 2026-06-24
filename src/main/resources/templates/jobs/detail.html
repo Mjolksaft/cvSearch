@@ -134,9 +134,9 @@
                     Generate a tailored CV or cover letter using AI (Ollama). First load can be slow.
                 </p>
                 <div class="d-flex gap-2">
-                    <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv/ai?userId=1'}"
-                       class="btn btn-primary" target="_blank">
-                        <i class="bi bi-file-pdf"></i> Generate Tailored CV
+                    <a th:href="@{'/jobs/' + ${job.id()} + '/cv/edit?userId=1'}"
+                       class="btn btn-primary">
+                        <i class="bi bi-magic"></i> Generate & Edit CV
                     </a>
                     <a th:href="@{'/api/jobs/' + ${job.id()} + '/cover-letter/ai?userId=1'}"
                        class="btn btn-outline-secondary" target="_blank">
@@ -161,9 +161,9 @@
                     </div>
                     <div>
                         <div class="small fw-bold text-muted mb-1">Step 3-4: CV Generation</div>
-                        <a th:href="@{'/api/jobs/' + ${job.id()} + '/cv/ai?userId=1'}"
-                           class="btn btn-primary btn-sm" target="_blank">
-                            <i class="bi bi-file-pdf"></i> Generate CV
+                        <a th:href="@{'/jobs/' + ${job.id()} + '/cv/edit?userId=1'}"
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-magic"></i> Generate & Edit CV
                         </a>
                         <a th:href="@{'/api/jobs/' + ${job.id()} + '/cover-letter/ai?userId=1'}"
                            class="btn btn-outline-secondary btn-sm" target="_blank">

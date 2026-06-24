@@ -285,6 +285,25 @@
             font-size: 9.5pt;
         }
     </style>
+
+    <!-- ── Color scheme override (injected server-side via schemeColors) ── -->
+    <style th:if="${schemeColors != null}" th:inline="text">
+        .sidebar { background: [[${schemeColors.sidebarBg}]] !important; }
+        .sidebar .section-title { background: [[${schemeColors.accent}]] !important; color: [[${schemeColors.accentText}]] !important; }
+        .sidebar .contact-icon { color: [[${schemeColors.accent}]] !important; }
+        .sidebar .contact-icon svg { fill: [[${schemeColors.accent}]] !important; }
+        .sidebar .skill-tag { background: [[${schemeColors.accent}]] !important; color: [[${schemeColors.accentText}]] !important; }
+        .sidebar .profile-image { border-color: [[${schemeColors.accent}]] !important; }
+        .main-name .accent { color: [[${schemeColors.accent}]] !important; }
+        .main .section-title { background: [[${schemeColors.accent}]] !important; color: [[${schemeColors.accentText}]] !important; }
+        .project { border-bottom-color: [[${schemeColors.accent}]] !important; }
+        body { background: [[${schemeColors.bodyBg}]] !important; }
+        .main-name, .project-name, .education-item .degree { color: [[${schemeColors.mainText}]] !important; }
+        .main-role, .project-tech, .project-desc, .main li, .education-item .school { color: [[${schemeColors.mainTextMuted}]] !important; }
+        .sidebar { color: [[${schemeColors.sidebarText}]] !important; }
+        .sidebar .contact-item, .sidebar .language-item, .sidebar-list li { color: [[${schemeColors.sidebarTextMuted}]] !important; }
+        .sidebar .contact-item a { color: inherit !important; }
+    </style>
 </head>
 
 <body>
