@@ -31,16 +31,14 @@ public class CvPromptService {
         this.summarizer = summarizer;
     }
 
-    /** Fetch a job and return its description summarized. */
+    
     private String summarizedDescription(Long jobId) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new EntityNotFoundException("Job not found with id: " + jobId));
         return summarizer.summarize(job.getDescription());
     }
 
-    /**
-     * Step 1: Ask the AI to select the 1–3 most relevant projects for the job.
-     */
+    
     public String buildProjectSelectionPrompt(Long jobId, Long userId) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new EntityNotFoundException("Job not found with id: " + jobId));
@@ -89,9 +87,7 @@ public class CvPromptService {
                         formatProjectsForPrompt(profile.getProjects()));
     }
 
-    /**
-     * Step 2: Build the full CV prompt with ONLY the pre-selected projects.
-     */
+    
     public String buildCvPrompt(Long jobId, Long userId, List<String> selectedProjectNames) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new EntityNotFoundException("Job not found with id: " + jobId));
@@ -250,11 +246,11 @@ public class CvPromptService {
         return value != null ? value : "";
     }
 
-    // ================================================================
-    //  4-Step prompt builders
-    // ================================================================
+    
+    
+    
 
-    /** Step 1: Extract required and preferred technologies from the job ad. */
+    
     public String buildExtractRequirementsPrompt(Long jobId) {
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new EntityNotFoundException("Job not found with id: " + jobId));
@@ -285,7 +281,7 @@ public class CvPromptService {
                         summarizer.summarize(job.getDescription()));
     }
 
-    /** Step 2: Select 1-3 projects whose technologies overlap with the job requirements. */
+    
     public String buildSelectProjectsPrompt(String requirementsJson, String projectsSummaryJson) {
         return """
                 Select the 1-3 projects that best match the job requirements.
@@ -307,7 +303,7 @@ public class CvPromptService {
                         safe(projectsSummaryJson));
     }
 
-    /** Step 3: Rewrite selected projects' descriptions and highlights to fit the job. */
+    
     public String buildRewriteProjectsPrompt(String requirementsJson, String selectedProjectsJson,
                                               String spaceAllocation) {
         return """
@@ -352,7 +348,7 @@ public class CvPromptService {
                         safe(spaceAllocation));
     }
 
-    /** Step 4: Write final CV profile (summary + skills) using rewritten projects + profile data. */
+    
     public String buildFinalProfilePrompt(
             String requirementsJson,
             String rewrittenProjectsJson,
@@ -411,9 +407,9 @@ public class CvPromptService {
                         safe(coursework));
     }
 
-    // ================================================================
-    //  Formatting helpers
-    // ================================================================
+    
+    
+    
     private String formatProjectsForPrompt(String projectsJson) {
         if (projectsJson == null || projectsJson.isBlank()) return "(no projects)";
         try {
@@ -443,7 +439,7 @@ public class CvPromptService {
         }
     }
 
-    /** Format only the selected projects (by name) for the CV writing prompt. */
+    
     public String formatSelectedProjectsForPrompt(String projectsJson, List<String> selectedNames) {
         if (projectsJson == null || projectsJson.isBlank()) return "(no projects)";
         if (selectedNames == null || selectedNames.isEmpty()) return "(no projects selected)";
@@ -460,7 +456,7 @@ public class CvPromptService {
                     .collect(Collectors.toList());
 
             if (filtered.isEmpty()) {
-                // fallback: show all projects with a warning
+                
                 return "(WARNING: none of the selected projects were found in profile)\n"
                         + formatProjectsForPrompt(projectsJson);
             }
@@ -488,7 +484,7 @@ public class CvPromptService {
         }
     }
 
-    /** Format projects with name + technologies only (no descriptions). Used for Step 2. */
+    
     public String formatProjectSummariesForPrompt(String projectsJson) {
         if (projectsJson == null || projectsJson.isBlank()) return "(no projects)";
         try {

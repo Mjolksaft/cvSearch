@@ -21,10 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.EntityNotFoundException;
 
-/**
- * Runs the full AI pipeline (steps 1-4) and returns structured CV content.
- * Shared between the PDF download endpoint and the edit page.
- */
+
 @Service
 public class AiContentService {
 
@@ -50,12 +47,12 @@ public class AiContentService {
         UserProfile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Profile not found for user id: " + userId));
 
-        // ── Step 1: Extract job requirements ──
+        
         String reqPrompt = promptService.buildExtractRequirementsPrompt(jobId);
         String reqResponse = aiService.chat(reqPrompt);
         JobRequirements requirements = parseJobRequirements(reqResponse);
 
-        // ── Step 2: Score projects by technology overlap (programmatic) ──
+        
         List<ProjectScorer.ProjectScore> allScores = projectScorer.scoreAll(
                 requirements, profile.getProjects());
 
@@ -75,7 +72,7 @@ public class AiContentService {
             throw new RuntimeException("No projects found in profile — add at least one project to generate a CV.");
         }
 
-        // ── Step 3: Rewrite selected project descriptions ──
+        
         String selectedProjectsFull = promptService.formatSelectedProjectsForPrompt(
                 profile.getProjects(), selectedProjectNames);
 
@@ -103,11 +100,11 @@ public class AiContentService {
         String rewriteResponse = aiService.chat(rewritePrompt);
         List<ProjectEntry> rewrittenProjects = parseProjectEntries(rewriteResponse);
 
-        // Safety: overwrite technologies + highlights with originals so AI never invents
+        
         rewrittenProjects = enforceOriginalTechnologies(rewrittenProjects, profile.getProjects());
         rewrittenProjects = enforceOriginalHighlights(rewrittenProjects, profile.getProjects());
 
-        // Re-sort rewritten projects by relevance score so the best match appears first
+        
         Map<String, Double> scoreMap = allScores.stream()
                 .collect(Collectors.toMap(
                         ProjectScorer.ProjectScore::name,
@@ -120,7 +117,7 @@ public class AiContentService {
         });
         rewrittenProjects = mutableProjects;
 
-        // ── Step 4: Write final profile (summary + skills) ──
+        
         String finalPrompt = promptService.buildFinalProfilePrompt(
                 toJson(requirements),
                 toJson(rewrittenProjects),
@@ -133,7 +130,7 @@ public class AiContentService {
         String finalResponse = aiService.chat(finalPrompt);
         ProfileOutput profileOutput = parseProfileOutput(finalResponse);
 
-        // ── Assemble into the final result ──
+        
         String summary = profileOutput.summary() != null ? limitWords(profileOutput.summary(), 50) : "";
         List<String> skills = profileOutput.skills() != null
                 ? profileOutput.skills().stream().limit(10).toList()
@@ -152,7 +149,7 @@ public class AiContentService {
                 staticEducation, staticLanguages, staticCertifications, coursework);
     }
 
-    // ── JSON parsing helpers (duplicated from GenerationController for independence) ──
+    
 
     private JobRequirements parseJobRequirements(String text) {
         String json = extractJson(text);

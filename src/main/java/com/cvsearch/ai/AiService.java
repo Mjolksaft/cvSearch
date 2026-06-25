@@ -22,16 +22,12 @@ public class AiService {
         this.defaultModel = model;
     }
 
-    /**
-     * Send a prompt to Ollama and get the response text.
-     */
+    
     public String chat(String prompt) {
         return chat(prompt, defaultModel);
     }
 
-    /**
-     * Send a prompt to a specific model and get the response text.
-     */
+    
     public String chat(String prompt, String model) {
         var request = new ChatRequest(model, List.of(new Message("user", prompt)), 0.7);
 
@@ -48,7 +44,7 @@ public class AiService {
         return response.choices().get(0).message().content();
     }
 
-    // ---------- Internal DTOs (same format as OpenAI API) ----------
+    
 
     private record ChatRequest(String model, List<Message> messages, double temperature) {
     }

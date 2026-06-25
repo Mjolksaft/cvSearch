@@ -46,7 +46,7 @@ public class CvPdfService {
 
     private static final Logger log = LoggerFactory.getLogger(CvPdfService.class);
 
-    /** Available color schemes — map of scheme name → color variables */
+    
     public static final Map<String, Map<String, String>> COLOR_SCHEMES = new LinkedHashMap<>();
     static {
         COLOR_SCHEMES.put("classic-dark-navy", Map.of(
@@ -199,11 +199,7 @@ public class CvPdfService {
         return generateHtml(context, template, debug, schemeName);
     }
 
-    /**
-     * Build a Thymeleaf context from a TailoredProfileRequest, loading
-     * supporting data (job, user, profile) from the database. Shared by
-     * the PDF and HTML methods above.
-     */
+    
     private Context buildTailoredContext(Long jobId, Long userId,
                                           TailoredProfileRequest tailored) {
         Job job = jobRepository.findById(jobId)
@@ -273,7 +269,7 @@ public class CvPdfService {
         Context context = new Context();
         context.setVariable("name", safe(name));
 
-        // Split name into first/last for styled display
+        
         String n = safe(name);
         String firstName = n.contains(" ") ? n.substring(0, n.indexOf(" ")) : n;
         String lastName = n.contains(" ") ? n.substring(n.indexOf(" ") + 1) : "";
@@ -299,7 +295,7 @@ public class CvPdfService {
         return context;
     }
 
-    /** Convenience overloads with no scheme (uses classic hardcoded colors) */
+    
     public String generateTailoredHtml(Long jobId, Long userId,
             TailoredProfileRequest tailored,
             String template, boolean debug) {
@@ -315,12 +311,7 @@ public class CvPdfService {
         return generatePdf(context, template, null);
     }
 
-    /**
-     * Generate the CV as HTML (not PDF). When {@code debug} is true, sections are
-     * outlined with dashed borders and budget annotations are shown — useful for
-     * visualising the page layout in a browser. Debug mode is ignored by the PDF
-     * renderer (OpenHTMLtoPDF does not support @media screen).
-     */
+    
     public String generateHtml(Context context, String template, boolean debug,
                                String schemeName) {
         boolean isSidebar = template != null && template.equals("sidebar");
@@ -330,7 +321,7 @@ public class CvPdfService {
         }
         context.setVariable("debug", debug);
 
-        // Apply color scheme
+        
         if (schemeName != null && COLOR_SCHEMES.containsKey(schemeName)) {
             context.setVariable("schemeColors", COLOR_SCHEMES.get(schemeName));
         } else if (schemeName != null) {
@@ -340,7 +331,7 @@ public class CvPdfService {
         return templateEngine.process(templateName, context);
     }
 
-    /** Convenience overload — no scheme (uses classic hardcoded colors). */
+    
     public String generateHtml(Context context, String template, boolean debug) {
         return generateHtml(context, template, debug, null);
     }
@@ -353,7 +344,7 @@ public class CvPdfService {
                 return null;
             }
 
-            // Read the original image
+            
             BufferedImage original = ImageIO.read(is);
             if (original == null) {
                 log.warn("Failed to decode photo");
@@ -362,18 +353,18 @@ public class CvPdfService {
 
             int size = Math.min(original.getWidth(), original.getHeight());
 
-            // Create a square transparent canvas
+            
             BufferedImage circle = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = circle.createGraphics();
             try {
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-                // Clip to a circle
+                
                 java.awt.geom.Ellipse2D.Double clip = new java.awt.geom.Ellipse2D.Double(0, 0, size, size);
                 g2d.setClip(clip);
 
-                // Draw the original image centered and cropped square
+                
                 int x = (original.getWidth() - size) / 2;
                 int y = (original.getHeight() - size) / 2;
                 g2d.drawImage(original, 0, 0, size, size, x, y, x + size, y + size, null);
@@ -381,7 +372,7 @@ public class CvPdfService {
                 g2d.dispose();
             }
 
-            // Encode the circular PNG to base64
+            
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(circle, "png", baos);
             String base64 = Base64.getEncoder().encodeToString(baos.toByteArray());
@@ -398,7 +389,7 @@ public class CvPdfService {
             builder.withHtmlContent(html, null);
             builder.useSVGDrawer(new BatikSVGDrawer());
 
-            // Register custom fonts
+            
             registerFont(builder, "templates/fonts/Montserrat-ExtraBold.ttf", "Montserrat ExtraBold");
             registerFont(builder, "templates/fonts/Montserrat-Medium.ttf", "Montserrat Medium");
             registerFont(builder, "templates/fonts/OpenSans-Regular.ttf", "Open Sans");

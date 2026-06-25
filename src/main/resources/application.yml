@@ -15,8 +15,8 @@ logging:
 server:
   port: 8080
 
-# Ollama runs locally — no API key needed
-# Download from https://ollama.com and run: ollama run llama3.2
+
+
 ollama:
   base-url: http://localhost:11434
   model: llama3.2

@@ -9,7 +9,7 @@ browser.runtime.onMessage.addListener(async (message) => {
     console.log("Background received:", message);
 
     if (message.action === "crawlLinkedIn") {
-        return handleCrawlLinkedIn(message.count || 10);
+        return handleCrawlLinkedIn(message.count || 10, message.keywords || "");
     }
 
     if (message.action === "getLinkedInDescription") {
@@ -19,17 +19,26 @@ browser.runtime.onMessage.addListener(async (message) => {
 
 // ===================== Crawl LinkedIn =====================
 
-async function handleCrawlLinkedIn(jobCount) {
+async function handleCrawlLinkedIn(jobCount, keywords) {
     try {
         const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true });
 
-        if (currentTab && currentTab.url && currentTab.url.startsWith("https://www.linkedin.com/jobs/")) {
+        // If already on a LinkedIn jobs page and no keywords, scrape it directly
+        if (currentTab && currentTab.url && currentTab.url.startsWith("https://www.linkedin.com/jobs/") && !keywords) {
             await scrapeAndSave(currentTab.id, jobCount);
             return { status: "ok" };
         }
 
+        // Build URL: search results if keywords, otherwise default top-applicant page
+        let linkedInUrl;
+        if (keywords) {
+            linkedInUrl = `https://www.linkedin.com/jobs/search-results/?keywords=${encodeURIComponent(keywords)}&origin=JOB_SEARCH_PAGE_JOB_FILTER&geoId=119330644&distance=99.41936`;
+        } else {
+            linkedInUrl = "https://www.linkedin.com/jobs/collections/top-applicant/";
+        }
+
         const linkedinTab = await browser.tabs.create({
-            url: "https://www.linkedin.com/jobs/collections/top-applicant/",
+            url: linkedInUrl,
             active: false
         });
 

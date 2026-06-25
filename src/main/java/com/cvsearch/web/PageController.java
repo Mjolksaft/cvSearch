@@ -134,24 +134,24 @@ public class PageController {
 
         TailoredProfileRequest content = aiContentService.generateContent(jobId, userId);
 
-        // Render the CV template as HTML for inline editing
+        
         String cvHtml = cvPdfService.generateTailoredHtml(jobId, userId, content, "sidebar", true);
 
-        // Load full profile skills for the "+" add skill dropdown
+        
         List<String> allSkills = List.of();
         try {
             UserProfile profile = profileRepository.findByUserId(userId)
                     .orElseThrow(() -> new RuntimeException("Profile not found"));
             allSkills = objectMapper.readValue(profile.getSkills(), new TypeReference<List<String>>() {});
         } catch (Exception e) {
-            // profile not found or skills not parseable — fallback to empty
+            
         }
 
         model.addAttribute("jobId", jobId);
         model.addAttribute("userId", userId);
         model.addAttribute("cvHtml", cvHtml);
 
-        // Serialize read-only data as JSON strings for JS
+        
         try {
             String eduJson = objectMapper.writeValueAsString(content.education() != null ? content.education() : List.of());
             String langJson = objectMapper.writeValueAsString(content.languages() != null ? content.languages() : List.of());

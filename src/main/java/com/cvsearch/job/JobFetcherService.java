@@ -160,7 +160,7 @@ public class JobFetcherService {
         }
 
         if (jobRepository.findByExternalId(externalId).isPresent()) {
-            return; // already imported, skip
+            return; 
         }
 
         String orgNumberStr = Optional.ofNullable(hit.employer())

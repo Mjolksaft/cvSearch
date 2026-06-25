@@ -20,13 +20,13 @@ powershell -ExecutionPolicy Bypass -File "%~dp0setup-profile.ps1"
 echo.
 echo.
 
-:: --- 3. Fetch some jobs from the API ---
-echo [3/3] Fetching job listings...
-curl -s "http://localhost:8080/api/jobs/fetch?q=java" > nul
-echo       ✔ Jobs fetched (output suppressed)
+@REM :: --- 3. Fetch some jobs from the API ---
+@REM echo [3/3] Fetching job listings...
+@REM curl -s "http://localhost:8080/api/jobs/fetch?q=java" > nul
+@REM echo       ✔ Jobs fetched (output suppressed)
 
-echo.
-echo.
+@REM echo.
+@REM echo.
 
 
 echo.

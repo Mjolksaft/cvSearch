@@ -5,10 +5,12 @@ window.addEventListener("message", async (event) => {
 
     if (event.data?.type === "CRAWL_LINKEDIN") {
         const count = event.data.count || 10;
+        const keywords = event.data.keywords || "";
 
         const response = await browser.runtime.sendMessage({
             action: "crawlLinkedIn",
-            count
+            count,
+            keywords
         });
 
         window.postMessage({
