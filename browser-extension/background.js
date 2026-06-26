@@ -23,8 +23,9 @@ async function handleCrawlLinkedIn(jobCount, keywords) {
     try {
         const [currentTab] = await browser.tabs.query({ active: true, currentWindow: true });
 
-        // If already on a LinkedIn jobs page and no keywords, scrape it directly
-        if (currentTab && currentTab.url && currentTab.url.startsWith("https://www.linkedin.com/jobs/") && !keywords) {
+        // If already on a LinkedIn jobs page, scrape the active tab directly
+        if (currentTab && currentTab.url && currentTab.url.startsWith("https://www.linkedin.com/jobs/")) {
+            console.log("[handleCrawlLinkedIn] Scraping active LinkedIn tab");
             await scrapeAndSave(currentTab.id, jobCount);
             return { status: "ok" };
         }
@@ -37,11 +38,26 @@ async function handleCrawlLinkedIn(jobCount, keywords) {
             linkedInUrl = "https://www.linkedin.com/jobs/collections/top-applicant/";
         }
 
-        const linkedinTab = await browser.tabs.create({
+        // --- Create an off-screen popup window ---
+        // Popup windows stay "active" enough for LinkedIn's virtualizer to render,
+        // unlike background tabs which freeze requestAnimationFrame.
+        console.log("[handleCrawlLinkedIn] Creating popup window...");
+        const popupWin = await browser.windows.create({
             url: linkedInUrl,
-            active: false
+            type: "popup",
+            width: 800,
+            height: 600,
+            left: -30000, // way off-screen to the left
+            top: -30000
         });
+        const linkedinTab = popupWin.tabs[0];
 
+        // Switch focus back to the original window so the popup stays behind it
+        if (currentTab?.windowId) {
+            await browser.windows.update(currentTab.windowId, { focused: true });
+        }
+
+        // Wait for page to finish loading
         await new Promise((resolve) => {
             function listener(tabId, changeInfo) {
                 if (tabId === linkedinTab.id && changeInfo.status === "complete") {
@@ -53,7 +69,9 @@ async function handleCrawlLinkedIn(jobCount, keywords) {
         });
 
         await scrapeAndSave(linkedinTab.id, jobCount);
-        await browser.tabs.remove(linkedinTab.id);
+
+        // Close the popup window
+        await browser.windows.remove(popupWin.id);
 
         return { status: "ok" };
     } catch (err) {
@@ -123,10 +141,13 @@ function delay(ms) {
 
 
 async function scrapeAndSave(tabId, count) {
+    console.log(`[scrapeAndSave] Sending crawlJobs action to tab ${tabId}, requesting ${count} jobs`);
     const response = await browser.tabs.sendMessage(tabId, { action: "crawlJobs", count });
 
+    console.log("[scrapeAndSave] Response from content script:", response);
+
     if (!response || !response.jobs || response.jobs.length === 0) {
-        console.log("No jobs found");
+        console.log("[scrapeAndSave] No jobs found");
         return;
     }
 

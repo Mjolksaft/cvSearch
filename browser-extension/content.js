@@ -1,3 +1,6 @@
+// ===================== Dual UI: Search Results + Collections =====================
+// Auto-detects page type and uses the right extraction strategy.
+
 browser.runtime.onMessage.addListener((message) => {
   if (message.action === "crawlJobs") {
     return scrapeJobs(message.count || 10);
@@ -8,11 +11,12 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// ===================== New UI (search-results page) =====================
-// Uses stable attributes: componentkey, span[aria-hidden="true"], <p> tags
+// ===================== Search Results UI (new) =====================
+// Used on /search-results/?keywords=...
+// Cards found via div[data-job-id] or [componentkey]
 
-function extractJobNewUI(card) {
-  // Job ID from componentkey attribute: "job-card-component-ref-4427825984"
+function extractSearchJob(card) {
+  // ID from componentkey attribute: "job-card-component-ref-4427825984"
   const componentKey = card.getAttribute("componentkey");
   const jobId = componentKey?.match(/\d+$/)?.[0];
   if (!jobId) return null;
@@ -20,7 +24,10 @@ function extractJobNewUI(card) {
   // Title: first span[aria-hidden="true"] inside the card
   const titleSpan = card.querySelector('span[aria-hidden="true"]');
   const title = titleSpan?.innerText?.trim();
-  if (!title) return null;
+  if (!title) {
+    console.log("  [extractSearchJob] No title for", jobId);
+    return null;
+  }
 
   // Company & Location: <p> elements, skipping the one that contains the title span
   const paragraphs = card.querySelectorAll("p");
@@ -29,7 +36,7 @@ function extractJobNewUI(card) {
   let location = null;
   let found = 0;
   for (const p of paragraphs) {
-    if (p === titleP) continue; // skip the title paragraph
+    if (p === titleP) continue;
     const text = p.innerText?.trim();
     if (!text) continue;
     if (found === 0) company = text;
@@ -37,71 +44,59 @@ function extractJobNewUI(card) {
     found++;
   }
 
-  if (!company) return null;
-  return { jobId, title, company, location };
+  return { jobId, title, company: company || null, location: location || null };
 }
 
-// ===================== Old UI (top-applicant / collections page) =====================
-// Uses data-occludable-job-id, a[href*="/jobs/view/"], text walker
+// ===================== Collections UI (old) =====================
+// Used on /collections/top-applicant/ and similar pages
+// Cards found via li[data-occludable-job-id]
 
-function extractJobOldUI(card) {
-  const jobId = card.getAttribute("data-occludable-job-id") || card.getAttribute("data-job-id");
+function extractCollectionJob(card) {
+  const jobId = card.getAttribute("data-occludable-job-id");
   if (!jobId) return null;
 
   // Title: the job view link
   const titleLink = card.querySelector('a[href*="/jobs/view/"]');
   const title = titleLink?.innerText?.trim();
-  if (!title) return null;
-
-  // Company & Location: walk all visible text excluding the title link
-  const textParts = [];
-  const walker = document.createTreeWalker(
-    card,
-    NodeFilter.SHOW_TEXT,
-    {
-      acceptNode: (node) => {
-        const text = node.textContent.trim();
-        if (!text) return NodeFilter.FILTER_REJECT;
-        if (titleLink && titleLink.contains(node)) return NodeFilter.FILTER_REJECT;
-        return NodeFilter.FILTER_ACCEPT;
-      }
-    }
-  );
-
-  while (walker.nextNode()) {
-    const text = walker.currentNode.textContent.trim();
-    if (text && text.length > 1 && !textParts.includes(text)) {
-      textParts.push(text);
-    }
+  if (!title) {
+    console.log("  [extractCollectionJob] No title for", jobId);
+    return null;
   }
 
-  const company = textParts[0] || null;
-  const location = textParts.length > 1 ? textParts[1] : null;
+  // Company: Art Deco design system subtitle
+  const subtitleEl = card.querySelector(".artdeco-entity-lockup__subtitle");
+  const company = subtitleEl?.innerText?.trim() || null;
 
-  if (!company) return null;
+  // Location: metadata wrapper
+  const metadataEl = card.querySelector(".job-card-container__metadata-wrapper");
+  const location = metadataEl?.innerText?.trim() || null;
+
   return { jobId, title, company, location };
 }
 
-// ===================== Unified entry point =====================
+// ===================== Scraping engine =====================
 
-function extractJob(card) {
-  if (card.hasAttribute("componentkey")) {
-    return extractJobNewUI(card);
-  }
-  return extractJobOldUI(card);
-}
-
-/**
- * Scrape up to `requestedCount` valid jobs from the LinkedIn page.
- *
- * Strategy for speed:
- *   - 1st pass: grab whatever cards are already rendered.
- *   - If cards exist but none have data yet (still hydrating), wait briefly and re-check.
- *   - Then scroll to lazy-load more, checking whether new cards actually appeared.
- *   - Bail as soon as we have enough, or if scrolling adds nothing new.
- */
 async function scrapeJobs(requestedCount) {
-  // Scroll container (find once, reuse)
+  // --- Auto-detect page type ---
+  const isSearchResults = window.location.href.includes("/search-results/");
+  console.log(`[scrapeJobs] Page: ${isSearchResults ? "SEARCH" : "COLLECTIONS"}, requesting ${requestedCount} jobs`);
+
+  // --- Configure selectors based on page type ---
+  let cardSelector, idExtractor, extractFn;
+
+  if (isSearchResults) {
+    // Search results: cards have componentkey attribute
+    cardSelector = "[componentkey^='job-card-component-ref-']";
+    idExtractor = (el) => el.getAttribute("componentkey")?.match(/\d+$/)?.[0];
+    extractFn = extractSearchJob;
+  } else {
+    // Collections: cards are li elements with data-occludable-job-id
+    cardSelector = "li[data-occludable-job-id]";
+    idExtractor = (el) => el.getAttribute("data-occludable-job-id");
+    extractFn = extractCollectionJob;
+  }
+
+  // --- Find scroll container ---
   const sentinel = document.querySelector("[data-results-list-top-scroll-sentinel]");
   const scrollContainer = sentinel?.parentElement
     || document.querySelector(".scaffold-layout__list")
@@ -111,101 +106,84 @@ async function scrapeJobs(requestedCount) {
 
   const MAX_ATTEMPTS = 15;
   const SCROLL_DELAY_MS = 1200;
-  const seenIds = new Set();
-  const validJobs = [];
+  const allIds = new Set();
+  let jobs = [];
+  const scrollPositions = [0.3, 0.6, 0.85, 0.95, 0.7, 0.4, 0.1, 0.5, 0.9, 0.99, 0.3, 0.7, 0.95, 0.5, 0.99];
   let consecutiveEmptyScrolls = 0;
 
-  // Scroll in a wave pattern: go down, then up, then down again
-  // This helps with virtualization since recycling might skip IDs in one direction
-  const scrollPositions = [0.3, 0.6, 0.85, 0.95, 0.7, 0.4, 0.1, 0.5, 0.9, 0.99, 0.3, 0.7, 0.95, 0.5, 0.99];
-
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const prevCardCount = seenIds.size;
+    const prevCount = allIds.size;
 
-    // --- First few attempts: just wait for lazy rendering (no scroll) ---
+    // --- Wait or scroll ---
     if (attempt < 3) {
       await delay(SCROLL_DELAY_MS);
     } else {
-      // --- Scroll to a specific position ---
       const pct = scrollPositions[Math.min(attempt - 3, scrollPositions.length - 1)];
       scrollContainer.scrollTop = scrollContainer.scrollHeight * pct;
       await delay(SCROLL_DELAY_MS);
     }
 
-    // --- Query ALL job cards currently in the DOM ---
-    // LinkedIn lazy-renders cards, so more appear over time without scrolling
-    const cardIds = new Map(); // id → DOM element
+    // --- Collect cards and extract ---
+    const cards = document.querySelectorAll(cardSelector);
+    const currentIds = [...cards].map(el => idExtractor(el)).filter(Boolean);
 
-    // Strategy 1: find by data-job-id on the inner div (most stable)
-    document.querySelectorAll("div[data-job-id]").forEach(el => {
-      const id = el.getAttribute("data-job-id");
-      if (id) cardIds.set(id, el);
-    });
+    for (const card of cards) {
+      const id = idExtractor(card);
+      if (!id || allIds.has(id)) continue;
 
-    // Strategy 2: find by data-occludable-job-id on the li
-    document.querySelectorAll("li[data-occludable-job-id]").forEach(el => {
-      const id = el.getAttribute("data-occludable-job-id");
-      if (id && !cardIds.has(id)) cardIds.set(id, el);
-    });
-
-    // Strategy 3: fallback — find by componentkey
-    document.querySelectorAll("[componentkey^='job-card-component-ref-']").forEach(el => {
-      const id = el.getAttribute("componentkey")?.match(/\d+$/)?.[0];
-      if (id && !cardIds.has(id)) cardIds.set(id, el);
-    });
-
-    console.log(`scrapeJobs: attempt ${attempt}, ${cardIds.size} cards in DOM, ${seenIds.size} seen, ${validJobs.length} valid`);
-
-    // --- Process all found cards ---
-    for (const [id, element] of cardIds) {
-      if (seenIds.has(id)) continue;
-      seenIds.add(id);
-
-      const job = extractJob(element);
+      const job = extractFn(card);
       if (job) {
-        validJobs.push(job);
-        if (validJobs.length >= requestedCount) break;
+        allIds.add(id);
+        jobs.push(job);
       }
+      // stub — retry next attempt
     }
 
-    // --- Done? ---
-    if (validJobs.length >= requestedCount) break;
+    console.log(
+      `[scrapeJobs] Attempt ${attempt}: ${cards.length} cards, ${jobs.length} extracted so far`
+    );
+    if (currentIds.length) {
+      console.log("  IDs:", currentIds);
+    }
 
-    // --- Track consecutive scrolls with no new IDs ---
-    if (seenIds.size === prevCardCount) {
+    if (jobs.length >= requestedCount) break;
+
+    if (allIds.size === prevCount) {
       consecutiveEmptyScrolls++;
-      if (consecutiveEmptyScrolls >= 3) break; // 3 empty = no more jobs
+      if (consecutiveEmptyScrolls >= 3) {
+        console.log("[scrapeJobs] Stopping: 3 consecutive scrolls returned no new jobs");
+        break;
+      }
     } else {
       consecutiveEmptyScrolls = 0;
     }
   }
 
-  return { jobs: validJobs.slice(0, requestedCount) };
+  jobs = jobs.slice(0, requestedCount);
+  console.log(`[scrapeJobs] Done. Collected ${jobs.length} jobs:`, jobs);
+  return { jobs };
 }
 
+// ===================== Description extraction (unrelated to crawl) =====================
+
 browser.runtime.onMessage.addListener((message) => {
-    console.log("LinkedIn content received:", message);
-
-    if (message.action === "extractLinkedInDescription") {
-        const description = extractLinkedInDescription();
-
-        return Promise.resolve({
-            jobId: message.jobId,
-            description
-        });
-    }
+  if (message.action === "extractLinkedInDescription") {
+    const description = extractLinkedInDescription();
+    return Promise.resolve({
+      jobId: message.jobId,
+      description
+    });
+  }
 });
 
 function extractLinkedInDescription() {
-    const textBox = document.querySelector('[data-testid="expandable-text-box"]');
-
-    if (!textBox) {
-        console.log("No description box found");
-        return null;
-    }
-
-    return textBox.innerText
-        .replace(/…\s*mer$/i, "")
-        .replace(/\n\s*\n\s*\n+/g, "\n\n")
-        .trim();
+  const textBox = document.querySelector('[data-testid="expandable-text-box"]');
+  if (!textBox) {
+    console.log("No description box found");
+    return null;
+  }
+  return textBox.innerText
+    .replace(/…\s*mer$/i, "")
+    .replace(/\n\s*\n\s*\n+/g, "\n\n")
+    .trim();
 }
