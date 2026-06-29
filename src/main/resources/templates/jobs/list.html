@@ -56,6 +56,25 @@
                             <i class="bi bi-x-lg"></i>
                         </a>
                     </div>
+                    <div class="col-12">
+                        <hr class="my-2">
+                        <div class="row g-2 align-items-end">
+                            <div class="col-auto">
+                                <span class="text-muted small"><i class="bi bi-geo-alt"></i> Jobs near:</span>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="text" class="form-control form-control-sm" name="nearCity" placeholder="City name" th:value="${nearCity}">
+                            </div>
+                            <div class="col-md-1">
+                                <input type="number" step="any" class="form-control form-control-sm" name="radiusKm" placeholder="km" th:value="${radiusKm ?: 50}">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-crosshair"></i> Nearby
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -92,14 +111,22 @@
                             <th>Company</th>
                             <th>Location</th>
                             <th>Status</th>
-                            <th><i class="bi bi-link-45deg" title="Source"></i></th>
-                            <th>Applied</th>
+                            <th><a href="#" id="sourceFilterBtn" class="text-decoration-none text-reset">Source <i class="bi bi-funnel" id="sourceFilterIcon"></i></a></th>
+                            <th>
+                                <a th:href="@{/jobs(page=0, size=${pageSize}, company=${filterCompany}, title=${filterTitle}, status=${filterStatus}, location=${filterLocation}, saved=${filterSaved}, sort='appliedDate', direction=${filterSort == 'appliedDate' and filterDirection == 'desc' ? 'asc' : 'desc'})}"
+                                   class="text-decoration-none text-reset">
+                                    Fetched Date
+                                    <i th:if="${filterSort == 'appliedDate' and filterDirection == 'desc'}" class="bi bi-sort-down"></i>
+                                    <i th:if="${filterSort == 'appliedDate' and filterDirection == 'asc'}" class="bi bi-sort-up"></i>
+                                </a>
+                            </th>
                             <th style="width: 50px;"></th>
                             <th style="width: 70px;"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="job : ${jobs}" th:class="${job.saved()} ? 'table-warning' : ''">
+                        <tr th:each="job : ${jobs}" th:class="${job.saved()} ? 'table-warning' : ''"
+                            th:attr="data-source=${job.website() != null and #strings.containsIgnoreCase(job.website(), 'linkedin.com')} ? 'linkedin' : (${job.externalId() != null} ? 'af' : 'other')">
                             <td class="text-center">
                                 <i th:if="${job.saved()}" class="bi bi-bookmark-fill text-warning"></i>
                             </td>
@@ -123,8 +150,7 @@
                                    class="bi bi-linkedin" style="color: #0a66c2;" title="LinkedIn"></i>
                                 <img th:if="${job.externalId() != null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"
                                      src="/images/arbetsformedlingen.png" style="width: 16px; height: 16px;" title="Arbetsförmedlingen">
-                                <i th:if="${job.externalId() == null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"
-                                   class="bi bi-globe2 text-secondary" title="Other"></i>
+                                <span th:if="${job.externalId() == null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"></span>
                             </td>
                             <td th:text="${#temporals.format(job.appliedDate(), 'yyyy-MM-dd')}">Date</td>
                             <td>
@@ -157,17 +183,17 @@
         <nav th:if="${totalPages > 1}" class="mt-4">
             <ul class="pagination justify-content-center">
                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                    <a class="page-link" th:href="@{/jobs(page=${currentPage - 1}, size=${pageSize}, company=${filterCompany}, title=${filterTitle}, status=${filterStatus}, location=${filterLocation}, saved=${filterSaved})}">
+                    <a class="page-link" th:href="@{/jobs(page=${currentPage - 1}, size=${pageSize}, company=${filterCompany}, title=${filterTitle}, status=${filterStatus}, location=${filterLocation}, saved=${filterSaved}, sort=${filterSort}, direction=${filterDirection})}">
                         <i class="bi bi-chevron-left"></i>
                     </a>
                 </li>
                 <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                     th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/jobs(page=${i}, size=${pageSize}, company=${filterCompany}, title=${filterTitle}, status=${filterStatus}, location=${filterLocation}, saved=${filterSaved})}"
+                    <a class="page-link" th:href="@{/jobs(page=${i}, size=${pageSize}, company=${filterCompany}, title=${filterTitle}, status=${filterStatus}, location=${filterLocation}, saved=${filterSaved}, sort=${filterSort}, direction=${filterDirection})}"
                        th:text="${i + 1}">1</a>
                 </li>
                 <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{/jobs(page=${currentPage + 1}, size=${pageSize}, company=${filterCompany}, title=${filterTitle}, status=${filterStatus}, location=${filterLocation}, saved=${filterSaved})}">
+                    <a class="page-link" th:href="@{/jobs(page=${currentPage + 1}, size=${pageSize}, company=${filterCompany}, title=${filterTitle}, status=${filterStatus}, location=${filterLocation}, saved=${filterSaved}, sort=${filterSort}, direction=${filterDirection})}">
                         <i class="bi bi-chevron-right"></i>
                     </a>
                 </li>
@@ -232,6 +258,36 @@
             if (event.data?.type === "CRAWL_LINKEDIN_DONE") {
                 window.location.reload();
             }
+        });
+
+        // Source column filter
+        const sourceBtn = document.getElementById("sourceFilterBtn");
+        const sourceIcon = document.getElementById("sourceFilterIcon");
+        let sourceFilter = null; // null = all, 'linkedin', 'af', 'other'
+
+        sourceBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const order = [null, 'linkedin', 'af', 'other'];
+            const labels = { null: 'All', linkedin: 'LinkedIn', af: 'Arbetsförmedlingen', other: 'Other' };
+            const icons = { null: 'bi-funnel', linkedin: 'bi-linkedin', af: 'bi-building', other: 'bi-file-earmark' };
+            const colors = { null: '', linkedin: '#0a66c2', af: '#dc3545', other: '#6c757d' };
+
+            const idx = order.indexOf(sourceFilter);
+            sourceFilter = order[(idx + 1) % order.length];
+
+            const rows = document.querySelectorAll("tbody tr");
+            rows.forEach(row => {
+                if (sourceFilter === null) {
+                    row.style.display = "";
+                } else {
+                    const rowSource = row.getAttribute("data-source");
+                    row.style.display = rowSource === sourceFilter ? "" : "none";
+                }
+            });
+
+            sourceIcon.className = 'bi ' + icons[sourceFilter];
+            sourceIcon.style.color = colors[sourceFilter];
+            sourceBtn.title = 'Filter: ' + labels[sourceFilter];
         });
     </script>
 </body>

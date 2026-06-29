@@ -10,5 +10,7 @@ public record JobPatchRequest(
         LocalDate appliedDate,
         Boolean saved,
         String employmentType,
-        String website) {
+        String website,
+        Double latitude,
+        Double longitude) {
 }

@@ -35,4 +35,16 @@ public interface JobRepository extends JpaRepository<Job, Long> {
                          @Param("appliedBefore") LocalDate appliedBefore,
                          @Param("appliedAfter") LocalDate appliedAfter,
                          Pageable pageable);
+
+    @Query("""
+            SELECT j FROM Job j
+            WHERE j.latitude IS NOT NULL
+            AND j.longitude IS NOT NULL
+            AND j.latitude BETWEEN :minLat AND :maxLat
+            AND j.longitude BETWEEN :minLng AND :maxLng
+            """)
+    List<Job> findJobsInBoundingBox(@Param("minLat") Double minLat,
+                                    @Param("maxLat") Double maxLat,
+                                    @Param("minLng") Double minLng,
+                                    @Param("maxLng") Double maxLng);
 }

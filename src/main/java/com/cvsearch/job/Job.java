@@ -47,6 +47,9 @@ public class Job {
 	@Column(length = 2048)
 	private String website;
 
+	private Double latitude;
+	private Double longitude;
+
 	public Job() {
 	}
 
@@ -154,5 +157,21 @@ public class Job {
 
 	public void setWebsite(String website) {
 		this.website = website;
+	}
+
+	public Double getLatitude() {
+		return this.latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	public Double getLongitude() {
+		return this.longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
 	}
 }

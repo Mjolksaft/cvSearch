@@ -18,5 +18,7 @@ public record JobResponse(
 		String location,
 		LocalDate deadline,
 		String website,
-		Long externalId) {
+		Long externalId,
+		Double latitude,
+		Double longitude) {
 }

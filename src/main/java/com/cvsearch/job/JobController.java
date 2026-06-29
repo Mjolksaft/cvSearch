@@ -102,4 +102,12 @@ public class JobController {
 		return ResponseEntity.ok(response);
 	}
 
+	@GetMapping("/near")
+	public ResponseEntity<List<JobResponse>> getJobsNear(
+			@RequestParam double lat,
+			@RequestParam double lng,
+			@RequestParam(defaultValue = "50") double radius) {
+		List<JobResponse> jobs = service.searchNearby(lat, lng, radius);
+		return ResponseEntity.ok(jobs);
+	}
 }

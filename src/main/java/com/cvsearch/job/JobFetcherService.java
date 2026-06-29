@@ -52,7 +52,7 @@ public class JobFetcherService {
     ) {
         private record ApiEmployer(String name, String organization_number, String workplace) {}
         private record ApiDescription(String text) {}
-        private record ApiWorkplaceAddress(String municipality, String region, String city, String country) {}
+        private record ApiWorkplaceAddress(String municipality, String region, String city, String country, Double[] coordinates) {}
         private record ApiEmploymentType(String label) {}
         private record ApiOccupation(String label) {}
         private record ApiOccupationGroup(String label) {}
@@ -219,6 +219,15 @@ public class JobFetcherService {
         job.setExternalId(externalId);
         job.setEmploymentType(employmentType);
         job.setWebsite(hit.webpage_url());
+
+        // Extract coordinates from API response (GeoJSON: [longitude, latitude])
+        if (hit.workplace_address() != null && hit.workplace_address().coordinates() != null
+                && hit.workplace_address().coordinates().length == 2) {
+            Double[] coords = hit.workplace_address().coordinates();
+            job.setLongitude(coords[0]);
+            job.setLatitude(coords[1]);
+        }
+
         jobRepository.save(job);
     }
 

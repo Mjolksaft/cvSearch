@@ -10,6 +10,7 @@ import com.cvsearch.job.JobService;
 import com.cvsearch.job.Job;
 import com.cvsearch.job.JobMapper;
 import com.cvsearch.job.JobNotFoundException;
+import com.cvsearch.job.GeocodingService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,12 +44,15 @@ class JobServiceUnitTest {
     @Mock
     private JobMapper jobMapper;
 
+    @Mock
+    private GeocodingService geocodingService;
+
     @InjectMocks
     private JobService jobService;
 
     private final Company company = new Company("Google", "https://www.google.com/", "Kristianstad", null);
     private final Job job = new Job("SWE", company, "Build stuff", "Applied", null, null, LocalDate.of(2026, 6, 1));
-    private final JobResponse response = new JobResponse(1L, "SWE", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null, null, null, null, null);
+    private final JobResponse response = new JobResponse(1L, "SWE", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null, null, null, null, null, null, null);
 
     @Test
     void getAllJobs_ShouldReturnPage() {
@@ -91,7 +95,7 @@ class JobServiceUnitTest {
 
     @Test
     void create_ShouldSaveAndReturnJob() {
-        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null, null);
+        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null, null, null, null);
         company.setId(1L);
 
         when(jobMapper.toEntity(request)).thenReturn(job);
@@ -108,7 +112,7 @@ class JobServiceUnitTest {
 
     @Test
     void create_ShouldThrowWhenCompanyNotFound() {
-        JobRequest request = new JobRequest("SWE", 99L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null, null);
+        JobRequest request = new JobRequest("SWE", 99L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null, null, null, null);
 
         when(jobMapper.toEntity(request)).thenReturn(job);
         when(companyRepository.findById(99L)).thenReturn(Optional.empty());
@@ -123,7 +127,7 @@ class JobServiceUnitTest {
 
     @Test
     void updateJobById_ShouldUpdateAndReturnJob() {
-        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null, null);
+        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null, null, null, null);
         company.setId(1L);
 
         when(repository.findById(1L)).thenReturn(Optional.of(job));
@@ -142,7 +146,7 @@ class JobServiceUnitTest {
 
     @Test
     void updateJobById_ShouldThrowWhenNotFound() {
-        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null, null);
+        JobRequest request = new JobRequest("SWE", 1L, "Build stuff", "Applied", LocalDate.of(2026, 6, 1), null, null, null, null);
 
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
@@ -156,12 +160,12 @@ class JobServiceUnitTest {
 
     @Test
     void partialUpdateJobById_ShouldApplyPatchAndSave() {
-        JobPatchRequest patch = new JobPatchRequest("Updated Title", null, null, null, null, null, null, null);
+        JobPatchRequest patch = new JobPatchRequest("Updated Title", null, null, null, null, null, null, null, null, null);
 
         when(repository.findById(1L)).thenReturn(Optional.of(job));
         doNothing().when(jobMapper).applyPartialUpdate(patch, job);
         when(repository.save(job)).thenReturn(job);
-        when(jobMapper.toResponse(job)).thenReturn(new JobResponse(1L, "Updated Title", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null, null, null, null, null));
+        when(jobMapper.toResponse(job)).thenReturn(new JobResponse(1L, "Updated Title", 1L, "Google", "Build stuff", "Applied", LocalDate.of(2026, 6, 1), false, null, null, null, null, null, null, null));
 
         JobResponse result = jobService.partialUpdateJobById(1L, patch);
 
@@ -172,7 +176,7 @@ class JobServiceUnitTest {
 
     @Test
     void partialUpdateJobById_WithCompanyChange_ShouldUpdateCompany() {
-        JobPatchRequest patch = new JobPatchRequest(null, 2L, null, null, null, null, null, null);
+        JobPatchRequest patch = new JobPatchRequest(null, 2L, null, null, null, null, null, null, null, null);
         Company newCompany = new Company("Meta", "https://meta.com", "Menlo Park", null);
         newCompany.setId(2L);
 
@@ -191,7 +195,7 @@ class JobServiceUnitTest {
 
     @Test
     void partialUpdateJobById_ShouldThrowWhenNotFound() {
-        JobPatchRequest patch = new JobPatchRequest("Title", null, null, null, null, null, null, null);
+        JobPatchRequest patch = new JobPatchRequest("Title", null, null, null, null, null, null, null, null, null);
 
         when(repository.findById(99L)).thenReturn(Optional.empty());
 

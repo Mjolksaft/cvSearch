@@ -12,5 +12,7 @@ public record JobRequest(
 		@NotBlank String status,
 		@NotNull LocalDate appliedDate,
 		String employmentType,
-		String website) {
+		String website,
+		Double latitude,
+		Double longitude) {
 }

@@ -16,6 +16,7 @@ import com.cvsearch.job.dto.BulkJobItem;
 import com.cvsearch.job.dto.JobPatchRequest;
 import com.cvsearch.job.dto.JobRequest;
 import com.cvsearch.job.dto.JobResponse;
+import com.cvsearch.util.DistanceCalculator;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -25,11 +26,13 @@ public class JobService {
 	private final JobRepository repository;
 	private final JobMapper jobMapper;
 	private final CompanyRepository companyRepository;
+	private final GeocodingService geocodingService;
 
-	public JobService(JobRepository repository, JobMapper jobMapper, CompanyRepository companyRepository) {
+	public JobService(JobRepository repository, JobMapper jobMapper, CompanyRepository companyRepository, GeocodingService geocodingService) {
 		this.repository = repository;
 		this.jobMapper = jobMapper;
 		this.companyRepository = companyRepository;
+		this.geocodingService = geocodingService;
 	}
 
 	public Page<JobResponse> GetAllJobs(Pageable pageable) {
@@ -104,6 +107,27 @@ public class JobService {
 		return jobMapper.toResponse(job);
 	}
 
+	public List<JobResponse> searchNearby(double lat, double lng, double radiusKm) {
+		// Approximate bounding box: 1° lat ≈ 111 km, 1° lng ≈ 111 * cos(lat) km
+		double latDelta = radiusKm / 111.0;
+		double lngDelta = radiusKm / (111.0 * Math.cos(Math.toRadians(lat)));
+
+		double minLat = lat - latDelta;
+		double maxLat = lat + latDelta;
+		double minLng = lng - lngDelta;
+		double maxLng = lng + lngDelta;
+
+		List<Job> candidates = repository.findJobsInBoundingBox(minLat, maxLat, minLng, maxLng);
+
+		return candidates.stream()
+				.filter(job -> {
+					double d = DistanceCalculator.haversine(lat, lng, job.getLatitude(), job.getLongitude());
+					return d <= radiusKm;
+				})
+				.map(jobMapper::toResponse)
+				.toList();
+	}
+
 	public List<JobResponse> bulkCreate(List<BulkJobItem> items) {
 		return items.stream().map(item -> {
 			if (item.externalId() != null) {
@@ -127,6 +151,20 @@ public class JobService {
 					LocalDate.now());
 			job.setWebsite(item.website());
 			job.setExternalId(item.externalId());
+
+			// Geocode location if coordinates not provided
+			Double lat = item.latitude();
+			Double lng = item.longitude();
+			if ((lat == null || lng == null) && item.location() != null && !item.location().isBlank()) {
+				double[] coords = geocodingService.geocode(item.location());
+				if (coords != null) {
+					lat = coords[0];
+					lng = coords[1];
+				}
+			}
+			job.setLatitude(lat);
+			job.setLongitude(lng);
+
 			job = repository.save(job);
 			return jobMapper.toResponse(job);
 		}).toList();

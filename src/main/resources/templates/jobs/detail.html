@@ -73,7 +73,7 @@
             <div class="col-md-3">
                 <div class="card shadow-sm text-center">
                     <div class="card-body">
-                        <div class="text-muted small">Applied Date</div>
+                        <div class="text-muted small">Fetched Date</div>
                         <div class="fw-medium mt-1" th:text="${#temporals.format(job.appliedDate(), 'yyyy-MM-dd')}">Date</div>
                     </div>
                 </div>
@@ -87,8 +87,7 @@
                                class="bi bi-linkedin me-1" style="color: #0a66c2;"></i>
                             <img th:if="${job.externalId() != null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"
                                  src="/images/arbetsformedlingen.png" style="width: 16px; height: 16px;" class="me-1">
-                            <i th:if="${job.externalId() == null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"
-                               class="bi bi-globe2 me-1 text-secondary"></i>
+                            <span th:if="${job.externalId() == null and (job.website() == null or !#strings.containsIgnoreCase(job.website(), 'linkedin.com'))}"></span>
                             <span th:text="${job.website() != null and #strings.containsIgnoreCase(job.website(), 'linkedin.com') ? 'LinkedIn' : job.externalId() != null ? 'Arbetsförmedlingen' : 'Other'}">Other</span>
                         </div>
                     </div>

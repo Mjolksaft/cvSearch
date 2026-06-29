@@ -8,5 +8,7 @@ public record BulkJobItem(
         String location,
         String website,
         String description,
-        Long externalId) {
+        Long externalId,
+        Double latitude,
+        Double longitude) {
 }

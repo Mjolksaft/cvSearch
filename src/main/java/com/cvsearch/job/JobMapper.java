@@ -20,10 +20,12 @@ public interface JobMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "company", ignore = true)
+    @Mapping(target = "externalId", ignore = true)
     Job toEntity(JobRequest request);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "company", ignore = true)
+    @Mapping(target = "externalId", ignore = true)
     void applyPartialUpdate(JobPatchRequest request, @MappingTarget Job job);
 }

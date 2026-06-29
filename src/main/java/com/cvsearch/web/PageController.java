@@ -3,6 +3,7 @@ package com.cvsearch.web;
 import com.cvsearch.generation.AiContentService;
 import com.cvsearch.generation.CvPdfService;
 import com.cvsearch.generation.dto.TailoredProfileRequest;
+import com.cvsearch.job.GeocodingService;
 import com.cvsearch.job.JobService;
 import com.cvsearch.job.dto.JobResponse;
 import com.cvsearch.userProfile.UserProfile;
@@ -34,17 +35,20 @@ public class PageController {
     private final AiContentService aiContentService;
     private final CvPdfService cvPdfService;
     private final ObjectMapper objectMapper;
+    private final GeocodingService geocodingService;
 
     public PageController(JobService jobService, UserProfileService profileService,
                           UserProfileRepository profileRepository,
                           AiContentService aiContentService, CvPdfService cvPdfService,
-                          ObjectMapper objectMapper) {
+                          ObjectMapper objectMapper,
+                          GeocodingService geocodingService) {
         this.jobService = jobService;
         this.profileService = profileService;
         this.profileRepository = profileRepository;
         this.aiContentService = aiContentService;
         this.cvPdfService = cvPdfService;
         this.objectMapper = objectMapper;
+        this.geocodingService = geocodingService;
     }
 
     @GetMapping("/")
@@ -65,16 +69,38 @@ public class PageController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "appliedDate") String sort,
             @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) String nearCity,
+            @RequestParam(required = false) Double radiusKm,
             Model model) {
 
         if (company != null && company.isBlank()) company = null;
         if (title != null && title.isBlank()) title = null;
         if (status != null && status.isBlank()) status = null;
         if (location != null && location.isBlank()) location = null;
+        if (nearCity != null && nearCity.isBlank()) nearCity = null;
 
         Boolean savedBool = null;
         if (saved != null && !saved.isBlank()) {
             savedBool = Boolean.parseBoolean(saved);
+        }
+
+        // If near search params provided, geocode city and use searchNearby
+        if (nearCity != null && radiusKm != null) {
+            double[] coords = geocodingService.geocode(nearCity);
+            if (coords != null) {
+                List<JobResponse> nearbyJobs = jobService.searchNearby(coords[0], coords[1], radiusKm);
+                model.addAttribute("jobs", nearbyJobs);
+                model.addAttribute("totalElements", nearbyJobs.size());
+                model.addAttribute("currentPage", 0);
+                model.addAttribute("totalPages", 1);
+                model.addAttribute("pageSize", nearbyJobs.size());
+                model.addAttribute("filterSort", sort);
+                model.addAttribute("filterDirection", direction);
+                model.addAttribute("nearCity", nearCity);
+                model.addAttribute("radiusKm", radiusKm);
+                return "jobs/list";
+            }
+            // If geocoding failed, fall through to normal search
         }
 
         Sort sortObj = Sort.by(Sort.Direction.fromString(direction), sort);
@@ -104,6 +130,8 @@ public class PageController {
         model.addAttribute("filterStatus", status);
         model.addAttribute("filterLocation", location);
         model.addAttribute("filterSaved", savedBool);
+        model.addAttribute("filterSort", sort);
+        model.addAttribute("filterDirection", direction);
 
         return "jobs/list";
     }
